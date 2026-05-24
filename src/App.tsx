@@ -3,6 +3,7 @@ import { NativeLanguageSelect } from './pages/NativeLanguageSelect.tsx'
 import { SessionProvider } from '@/contexts/SessionContext.tsx'
 import { RequireNativeLanguage } from '@/routes/guards/RequireNativeLanguage.tsx'
 import { TargetLanguageSelect } from '@/pages/TargetLanguageSelect.tsx'
+import { SessionCreation } from '@/pages/SessionCreation.tsx'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Route path="/" element={<NativeLanguageSelect />} />
           <Route element={<RequireNativeLanguage />}>
             <Route path="/target" element={<TargetLanguageSelect />} />
+            <Route path="/create-session" element={<SessionCreation />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

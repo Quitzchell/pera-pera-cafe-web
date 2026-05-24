@@ -37,7 +37,7 @@ export function TargetLanguageSelect() {
   function handleContinue() {
     if (!target || selected.length === 0) return
     setTarget(target, toCEFRLevels(target, selected))
-    navigate('/mode')
+    navigate('/create-session')
   }
 
   const levels = target ? levelsForLanguage(target) : []
