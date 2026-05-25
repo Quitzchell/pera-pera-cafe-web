@@ -5,7 +5,7 @@ import { HostSessionForm } from '@/features/session/HostSessionForm'
 
 export function SessionCreation() {
   const { nativeLanguage, targetLanguage, proficiencyLevels } = useOnboarding()
-  const { setSession } = useSession()
+  const { setSession, sessionId, sessionTitle, participantId } = useSession()
   const navigate = useNavigate()
 
   if (!targetLanguage || !nativeLanguage || proficiencyLevels.length === 0) {
@@ -22,6 +22,7 @@ export function SessionCreation() {
         hostProficiencyLevels={proficiencyLevels}
         onCreated={({ session, participant }) => {
           setSession(session.id, session.title, participant.id)
+          console.log(`returned from nest: ${sessionId}, ${sessionTitle}, ${participantId}`)
           navigate(`/sessions/${session.id}`)
         }}
       />
