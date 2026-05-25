@@ -1,11 +1,12 @@
-import { useSession } from '@/contexts/useSession.ts'
 import { useNavigate } from 'react-router-dom'
-import { HostSessionForm } from '@/components/forms/HostSessionForm.tsx'
+import { useOnboarding } from '@/features/onboarding/host/useOnboarding'
+import { useSession } from '@/features/session/useSession'
+import { HostSessionForm } from '@/features/session/HostSessionForm'
 
 export function SessionCreation() {
-  const { nativeLanguage, targetLanguage, proficiencyLevels } = useSession()
-  const navigate = useNavigate()
+  const { nativeLanguage, targetLanguage, proficiencyLevels } = useOnboarding()
   const { setSession } = useSession()
+  const navigate = useNavigate()
 
   if (!targetLanguage || !nativeLanguage || proficiencyLevels.length === 0) {
     return null

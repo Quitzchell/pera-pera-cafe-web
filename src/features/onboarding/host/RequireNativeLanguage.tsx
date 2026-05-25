@@ -1,8 +1,8 @@
-import { useSession } from '@/contexts/useSession.ts'
 import { Navigate, Outlet } from 'react-router-dom'
+import { useOnboarding } from '@/features/onboarding/host/useOnboarding'
 
 export function RequireNativeLanguage() {
-  const { nativeLanguage } = useSession()
+  const { nativeLanguage } = useOnboarding()
 
   if (!nativeLanguage) {
     return <Navigate to="/" replace />

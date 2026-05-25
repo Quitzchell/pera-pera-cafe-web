@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button } from '@/components/ui/button'
-import { useSession } from '@/contexts/useSession'
+import { Button } from '@/shared/ui/button'
+import { useOnboarding } from '@/features/onboarding/host/useOnboarding'
 import {
   LANGUAGE_CODES,
   LANGUAGE_LABELS,
@@ -11,12 +11,12 @@ import {
   type CEFRLevel,
   type JLPTLevel,
   type Language,
-} from '@/lib/language.ts'
+} from '@/shared/lib/language'
 
 type InputLevel = CEFRLevel | JLPTLevel
 
 export function TargetLanguageSelect() {
-  const { nativeLanguage, setTarget } = useSession()
+  const { nativeLanguage, setTarget } = useOnboarding()
   const navigate = useNavigate()
   const [target, setTargetLanguage] = useState<Language | null>(null)
   const [selected, setSelected] = useState<InputLevel[]>([])

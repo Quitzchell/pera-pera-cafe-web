@@ -1,10 +1,10 @@
-import type { CEFRLevel, Language } from '@/lib/language.ts'
+import type { CEFRLevel, Language } from '@/shared/lib/language'
 import { useState } from 'react'
-import { useAsync } from '@/hooks/useAsync'
-import { Button } from '@/components/ui/button'
-import { createSession, type HostedSession } from '@/api/sessions.ts'
+import { useAsync } from '@/shared/hooks/useAsync'
+import { Button } from '@/shared/ui/button'
+import { createSession, type HostedSession } from '@/features/session/api'
 
-type HostTableFormProps = {
+type HostSessionFormProps = {
   targetLanguage: Language
   hostNativeLanguage: Language
   hostProficiencyLevels: CEFRLevel[]
@@ -16,7 +16,7 @@ export function HostSessionForm({
   hostNativeLanguage,
   hostProficiencyLevels,
   onCreated,
-}: HostTableFormProps) {
+}: HostSessionFormProps) {
   const [title, setTitle] = useState<string>('')
   const [hostDisplayName, setHostDisplayName] = useState<string>('')
   const { loading, error, run } = useAsync(createSession)
@@ -27,10 +27,12 @@ export function HostSessionForm({
     if (!canSubmit) return
     const result = await run({
       title: title.trim(),
-      hostDisplayName: hostDisplayName.trim(),
       targetLanguage: targetLanguage,
-      hostNativeLanguage: hostNativeLanguage,
-      hostProficiencyLevels: hostProficiencyLevels,
+      host: {
+        displayName: hostDisplayName.trim(),
+        nativeLanguage: hostNativeLanguage,
+        proficiencyLevels: hostProficiencyLevels,
+      },
     })
     if (result) onCreated(result)
   }

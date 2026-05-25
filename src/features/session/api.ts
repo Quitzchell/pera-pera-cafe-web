@@ -1,4 +1,4 @@
-import type { Language, CEFRLevel } from '@/lib/language.ts'
+import type { CEFRLevel, Language } from '@/shared/lib/language'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -9,18 +9,15 @@ export type HostedSession = {
 
 type CreateSessionRequest = {
   title: string
-  hostDisplayName: string
   targetLanguage: Language
-  hostNativeLanguage: Language
-  hostProficiencyLevels: CEFRLevel[]
+  host: {
+    displayName: string
+    nativeLanguage: Language
+    proficiencyLevels: CEFRLevel[]
+  }
 }
 
-type CreateSessionResponse = {
-  session: { id: string; title: string }
-  participant: { id: string }
-}
-
-export async function createSession(request: CreateSessionRequest): Promise<CreateSessionResponse> {
+export async function createSession(request: CreateSessionRequest): Promise<HostedSession> {
   const res = await fetch(`${API_URL}/sessions`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
