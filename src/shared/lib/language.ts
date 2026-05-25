@@ -49,14 +49,3 @@ export function toCEFRLevels(
   return CEFR_LEVELS.filter((c) => expanded.includes(c))
 }
 
-export function requiresRomanization(language: Language): boolean {
-  return LANGUAGES.find((l) => l.code === language)?.script !== 'latin'
-}
-
-export function matchesSessionLanguages(
-  candidate: Language,
-  hostNativeLanguage: Language,
-  targetLanguage: Language,
-): boolean {
-  return candidate === hostNativeLanguage || candidate === targetLanguage
-}
