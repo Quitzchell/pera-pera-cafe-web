@@ -27,7 +27,8 @@ export function HostSessionForm({
     if (!canSubmit) return
     const result = await run({
       title: title.trim(),
-      targetLanguage: targetLanguage,
+      targetLanguage,
+      sourceLanguage: hostNativeLanguage,
       host: {
         displayName: hostDisplayName.trim(),
         nativeLanguage: hostNativeLanguage,

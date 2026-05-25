@@ -10,6 +10,7 @@ export type HostedSession = {
 type CreateSessionRequest = {
   title: string
   targetLanguage: Language
+  sourceLanguage: Language
   host: {
     displayName: string
     nativeLanguage: Language
