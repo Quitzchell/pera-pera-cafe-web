@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useOnboarding } from '@/features/onboarding/host/useOnboarding'
+import { useOnboarding } from '@/context/onboarding/useOnboarding.ts'
 
 export function RequireTargetLanguage() {
   const { targetLanguage, proficiencyLevels } = useOnboarding()

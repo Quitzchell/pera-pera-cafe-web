@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { CEFRLevel, Language } from '@/shared/lib/language'
+import type { CEFRLevel, Language } from '@/shared/lib/language.ts'
 
 export type OnboardingState = {
   nativeLanguage: Language | null

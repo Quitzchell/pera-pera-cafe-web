@@ -1,11 +1,7 @@
-import type { CEFRLevel, Language } from '@/shared/lib/language'
+import type { CEFRLevel, Language } from '@/shared/lib/language.ts'
+import type { HostedSession } from '@/types/session.ts'
 
 const API_URL = import.meta.env.VITE_API_URL
-
-export type HostedSession = {
-  session: { id: string; title: string }
-  participant: { id: string }
-}
 
 type CreateSessionRequest = {
   title: string

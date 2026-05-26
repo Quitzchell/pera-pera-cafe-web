@@ -48,4 +48,3 @@ export function toCEFRLevels(
   )
   return CEFR_LEVELS.filter((c) => expanded.includes(c))
 }
-

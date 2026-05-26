@@ -1,11 +1,10 @@
 import { useNavigate } from 'react-router-dom'
-import { useOnboarding } from '@/features/onboarding/host/useOnboarding'
-import { useSession } from '@/features/session/useSession'
-import { HostSessionForm } from '@/features/session/HostSessionForm'
+import { useOnboarding } from '@/context/onboarding/useOnboarding.ts'
+import { HostSessionForm } from '@/components/HostSessionForm.tsx'
+import { storeHostSession } from '@/shared/lib/sessionPersistence'
 
 export function SessionCreation() {
   const { nativeLanguage, targetLanguage, proficiencyLevels } = useOnboarding()
-  const { setSession, sessionId, sessionTitle, participantId } = useSession()
   const navigate = useNavigate()
 
   if (!targetLanguage || !nativeLanguage || proficiencyLevels.length === 0) {
@@ -21,9 +20,13 @@ export function SessionCreation() {
         hostNativeLanguage={nativeLanguage}
         hostProficiencyLevels={proficiencyLevels}
         onCreated={({ session, participant }) => {
-          setSession(session.id, session.title, participant.id)
-          console.log(`returned from nest: ${sessionId}, ${sessionTitle}, ${participantId}`)
-          navigate(`/sessions/${session.id}`)
+          storeHostSession({
+            sessionId: session.id,
+            sessionTitle: session.title,
+            participantId: participant.id,
+            targetLanguage,
+          })
+          navigate(`/session/${session.id}`)
         }}
       />
     </div>

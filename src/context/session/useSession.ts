@@ -1,10 +1,11 @@
 import { createContext, useContext } from 'react'
+import type { Language } from '@/shared/lib/language'
 
 export type SessionState = {
-  sessionId: string | null
+  sessionId: string
   sessionTitle: string | null
   participantId: string | null
-  setSession: (sessionId: string, sessionTitle: string, participantId: string) => void
+  targetLanguage: Language | null
 }
 
 export const SessionContext = createContext<SessionState | undefined>(undefined)

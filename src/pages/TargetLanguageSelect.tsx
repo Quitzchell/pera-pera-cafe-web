@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/shared/ui/button'
-import { useOnboarding } from '@/features/onboarding/host/useOnboarding'
+import { useOnboarding } from '@/context/onboarding/useOnboarding.ts'
 import {
   LANGUAGE_CODES,
   LANGUAGE_LABELS,

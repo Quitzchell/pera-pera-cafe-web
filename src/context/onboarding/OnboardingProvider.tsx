@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
-import type { CEFRLevel, Language } from '@/shared/lib/language'
-import { OnboardingContext } from '@/features/onboarding/host/useOnboarding'
+import type { CEFRLevel, Language } from '@/shared/lib/language.ts'
+import { OnboardingContext } from '@/context/onboarding/useOnboarding.ts'
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [nativeLanguage, setNativeLanguage] = useState<Language | null>(null)

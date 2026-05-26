@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui/button'
 import { LANGUAGES, type Language } from '@/shared/lib/language'
-import { useOnboarding } from '@/features/onboarding/host/useOnboarding'
+import { useOnboarding } from '@/context/onboarding/useOnboarding.ts'
 
 export function NativeLanguageSelect() {
   const { setNativeLanguage } = useOnboarding()

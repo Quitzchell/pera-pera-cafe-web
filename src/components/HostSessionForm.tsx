@@ -1,8 +1,9 @@
-import type { CEFRLevel, Language } from '@/shared/lib/language'
+import type { CEFRLevel, Language } from '@/shared/lib/language.ts'
 import { useState } from 'react'
-import { useAsync } from '@/shared/hooks/useAsync'
-import { Button } from '@/shared/ui/button'
-import { createSession, type HostedSession } from '@/features/session/api'
+import { useAsync } from '@/shared/hooks/useAsync.ts'
+import { Button } from '@/shared/ui/button.tsx'
+import { createSession } from '@/api/session.ts'
+import type { HostedSession } from '@/types/session.ts'
 
 type HostSessionFormProps = {
   targetLanguage: Language
