@@ -60,7 +60,9 @@ export function SessionProvider({ sessionId, children }: SessionProviderProps) {
 
     socket.on('session:status', ({ status }: { status: SessionStatus }) => {
       setSessionStatus(status);
-      setIsHydrated(true);
+      if (status !== 'active') {
+        setIsHydrated(true);
+      }
     });
 
     socket.on('session:started', ({ dealerId }: { dealerId: string }) => {
@@ -78,6 +80,7 @@ export function SessionProvider({ sessionId, children }: SessionProviderProps) {
       ({ dealerId, currentCard }: { dealerId: string; currentCard: CurrentCard | null }) => {
         setCurrentDealerId(dealerId);
         setCurrentCard(currentCard);
+        setIsHydrated(true);
       },
     );
 
