@@ -211,10 +211,10 @@ export function SessionWaitingRoom() {
         {/* Dealer: skip + pass */}
         {isDealer && currentCard && (
           <div className="flex gap-3">
-            <Button variant="outline" disabled={actionPending} onClick={handleSkip}>
+            <Button variant="outline" disabled={actionPending || !isConnected} onClick={handleSkip}>
               {actionPending ? '...' : 'Skip card'}
             </Button>
-            <Button disabled={actionPending} onClick={handlePass}>
+            <Button disabled={actionPending || !isConnected} onClick={handlePass}>
               {actionPending ? '...' : 'Pass turn'}
             </Button>
           </div>
@@ -225,7 +225,12 @@ export function SessionWaitingRoom() {
         )}
         {/* Host: end session (subtle) */}
         {isHost && (
-          <Button variant="ghost" size="sm" disabled={actionPending} onClick={handleEnd}>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={actionPending || !isConnected}
+            onClick={handleEnd}
+          >
             End session
           </Button>
         )}
