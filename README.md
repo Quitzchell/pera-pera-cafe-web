@@ -1,73 +1,53 @@
-# React + TypeScript + Vite
+# Pera Pera Cafe — Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend for **Pera Pera Cafe**, a realtime web app for practicing a language with friends through a shared card game. One person hosts a session, others join from their phones by scanning a QR code, and everyone drills vocabulary and questions together in realtime. Backend lives in a separate repo: [pera-pera-cafe-api](https://github.com/Quitzchell/pera-pera-cafe-api) (NestJS).
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The app is a guided flow rather than a single screen:
 
-## React Compiler
+1. **Onboarding** — pick your native language, then the language you want to practice and your level(s). Japanese uses JLPT (N5–N1) and everything else uses CEFR (A1–C2); JLPT levels are mapped to CEFR before hitting the API, so the backend only ever deals in one scheme.
+2. **Host or join** — a host names a session and gets a QR code / share link. Guests open that link, enter a name, and pick their side of the language pair.
+3. **Waiting room** — everyone sees the live participant list update as people connect and drop.
+4. **Play** — the host starts the game. Turns rotate through a "dealer": the dealer picks a participant and draws a card, the card (with romanization and a native-language gloss) shows for the dealer and observers, the target only sees a "you're being asked" prompt, and the dealer can skip the card or pass the turn. All of this is pushed over WebSocket, so every screen stays in sync without polling.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+UI/UX decisions worth calling out: the target deliberately does **not** see the card text (they answer by listening); host controls like *End session* are intentionally low-emphasis; and every socket-backed action is disabled while disconnected so nobody fires a move into a dead connection.
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React 19** + **TypeScript**, built with **Vite 8**. Leans on React 19 form primitives — `useActionState` drives the create/join forms with built-in pending and error states, no form library needed.
+- **React Router 7** for routing, with guard routes (`RequireNativeLanguage`, `RequireTargetLanguage`, `SessionRoute`) that redirect out anyone who skips a step or lands on a session without a membership.
+- **socket.io-client** for realtime gameplay.
+- **Tailwind CSS 4** + **shadcn/ui** (new-york, Radix primitives, lucide icons) for the component layer. `qrcode.react` renders the join QR.
+- Path alias `@` → `src/`.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Architecture
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+State is split across two contexts, each backed by `sessionStorage` so a refresh mid-session doesn't lose you:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+- **`OnboardingProvider`** — holds native/target language and levels through the pre-session flow.
+- **`SessionProvider`** — mounted per-session by `SessionRoute`. It reads the stored membership, opens the socket, and owns all live game state (participants, connection status, session status, current dealer, current card). Components read it through `useSession()` and never touch the socket directly.
+
+The socket is opened with `path: '/api/socket.io/'` and an auth handshake carrying `{ sessionId, participantId }`. Inbound events (`presence:list`, `participant:joined/left`, `session:status/started/ended`, `game:state`, `card:drawn`, `turn:passed`) reduce into context state; outbound actions (`session:start/end`, `card:draw/skip`, `turn:pass`) go through a small `emitAck` helper that wraps socket acknowledgements in a promise so the UI gets a clean `{ ok, error }` result to react to.
+
+REST calls (create session, join, fetch session/participant) live in `src/api/session.ts` against `VITE_API_URL`, with a typed `httpError` so callers can branch on status (e.g. a 404 on the host check means "not the host").
+
+## Running locally
+
+Requires the [API](https://github.com/Quitzchell/pera-pera-cafe-api) running and reachable.
+
+```bash
+cp .env.example .env      # set VITE_API_URL to the API's base URL
+npm install
+npm run dev               # Vite dev server on http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Or with Docker (the `Makefile` wraps compose):
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+make up      # build + start on :5173
+make logs    # tail
+make down    # stop
 ```
+
+Scripts: `npm run build` (typecheck + Vite build), `npm run lint`, `npm run format`.
