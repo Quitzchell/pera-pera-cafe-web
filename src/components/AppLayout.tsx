@@ -37,7 +37,7 @@ export function AppLayout() {
       </a>
       <header className="border-b">
         <div className="mx-auto flex max-w-3xl items-center gap-1 overflow-x-auto px-4 py-1">
-          <NavLink to="/" className="mr-2 shrink-0 text-base font-semibold" aria-label="Home">
+          <NavLink to="/" className="mr-2 shrink-0 text-base font-semibold" aria-label="Pera Pera Cafe">
             <span lang="ja">ぺらぺら</span>
           </NavLink>
           <nav aria-label="Main" className="flex gap-1">

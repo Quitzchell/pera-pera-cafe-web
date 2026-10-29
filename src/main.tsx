@@ -1,15 +1,17 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import './index.css';
 import { AuthProvider } from '@/auth/AuthProvider';
-import { router } from '@/router';
+import { routes } from '@/router';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('Root element #root not found in index.html');
 }
+
+const router = createBrowserRouter(routes);
 
 createRoot(rootElement).render(
   <StrictMode>
