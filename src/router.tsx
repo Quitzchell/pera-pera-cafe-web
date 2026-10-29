@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 
 import { AppLayout } from '@/components/AppLayout';
 import { Loading } from '@/components/Loading';
@@ -6,7 +6,7 @@ import { NotFound } from '@/pages/NotFound';
 import { RequireAdmin } from '@/routing/RequireAdmin';
 import { RequireAuth } from '@/routing/RequireAuth';
 
-export const routes = [
+export const routes: RouteObject[] = [
   {
     HydrateFallback: Loading,
     children: [
@@ -78,5 +78,3 @@ export const routes = [
     ],
   },
 ];
-
-export const router = createBrowserRouter(routes);
