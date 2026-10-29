@@ -1,4 +1,11 @@
-import type { ConjugationForm, DrillMode, RuleGroup, UserStatus, VerbClass } from '@/api/types';
+import type {
+  ConjugationForm,
+  DrillMode,
+  JlptLevel,
+  RuleGroup,
+  UserStatus,
+  VerbClass,
+} from '@/api/types';
 
 export const FORM_LABELS: Record<ConjugationForm, string> = {
   POLITE: 'polite (ます形)',
@@ -36,6 +43,20 @@ export const FORM_EXAMPLES: Record<ConjugationForm, string> = {
   IMPERATIVE: '書け',
   PROHIBITIVE: '書くな',
   POTENTIAL_CONDITIONAL: '書ければ',
+};
+
+export const FORMS_BY_LEVEL: Record<JlptLevel, ConjugationForm[]> = {
+  N5: ['POLITE', 'POLITE_NEGATIVE', 'POLITE_PAST', 'NEGATIVE', 'PAST_NEGATIVE', 'TE', 'PAST'],
+  N4: [
+    'POTENTIAL',
+    'PASSIVE',
+    'CAUSATIVE',
+    'VOLITIONAL',
+    'CONDITIONAL_BA',
+    'IMPERATIVE',
+    'PROHIBITIVE',
+  ],
+  N3: ['CAUSATIVE_PASSIVE', 'POTENTIAL_CONDITIONAL'],
 };
 
 export const RULE_GROUP_LABELS: Record<RuleGroup, string> = {
