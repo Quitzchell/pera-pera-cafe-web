@@ -110,7 +110,7 @@ describe('DrillSession', () => {
     const { unmount } = render(
       <DrillSession round={standardRound} showFurigana romajiInput={false} onComplete={vi.fn()} />,
     );
-    expect(document.querySelector('ruby rt')).toHaveTextContent('およぐ');
+    expect(document.querySelector('ruby rt')).toHaveTextContent(/^およ$/);
     unmount();
 
     renderSession(standardRound, { showFurigana: false });
