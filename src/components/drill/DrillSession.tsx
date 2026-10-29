@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ApiError, drillApi } from '@/api';
 import type { AnswerResult, Round } from '@/api/types';
@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/button';
 import { FORM_LABELS } from '@/lib/labels';
 
 type Answered = AnswerResult & { answer: string };
+
+// After a wrong answer, a hasty Enter shouldn't skip past the correction.
+const MISTAKE_DELAY_MS = 600;
 
 interface DrillSessionProps {
   round: Round;
@@ -31,6 +34,7 @@ export function DrillSession({
   const [answers, setAnswers] = useState<Record<string, Answered>>({});
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const continueAfter = useRef(0);
 
   const total = round.items.length;
   const item = round.items[index];
@@ -48,6 +52,7 @@ export function DrillSession({
     setError(null);
     try {
       const answerResult = await drillApi.answer(round.id, item.id, answer);
+      if (!answerResult.isCorrect) continueAfter.current = Date.now() + MISTAKE_DELAY_MS;
       setAnswers((current) => ({ ...current, [item.id]: { ...answerResult, answer } }));
     } catch (caught) {
       setError(caught);
@@ -58,6 +63,7 @@ export function DrillSession({
 
   function next() {
     if (!result && !conflict) return;
+    if (Date.now() < continueAfter.current) return;
     setError(null);
     if (isLast) onComplete();
     else setIndex(index + 1);
@@ -151,10 +157,12 @@ export function DrillSession({
         />
       ) : (
         <AnswerInput
-          key={item.id}
-          disabled={pending || Boolean(result)}
+          itemId={item.id}
+          locked={pending || Boolean(result)}
+          status={result ? (result.isCorrect ? 'correct' : 'wrong') : undefined}
           romaji={romajiInput}
           onSubmit={(answer) => void submit(answer)}
+          onContinue={next}
         />
       )}
 
@@ -165,7 +173,14 @@ export function DrillSession({
       <ErrorMessage error={error} />
 
       {(result || conflict) && (
-        <Button size="lg" onClick={next} disabled={completing} autoFocus>
+        <Button
+          size="lg"
+          onClick={next}
+          disabled={completing}
+          // Typed answers keep focus in the input; Enter there continues.
+          autoFocus={isExam || conflict}
+          onMouseDown={(event) => !isExam && event.preventDefault()}
+        >
           {isLast ? (completing ? 'Finishing…' : 'See results') : 'Next'}
         </Button>
       )}

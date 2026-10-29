@@ -32,6 +32,8 @@ test('accept invite, sign in, finish a round and see progress', async ({ page })
   await page.getByLabel(/your answer/i).fill('およんだ');
   await page.getByRole('button', { name: 'Check' }).click();
   await expect(page.getByText('Not quite')).toBeVisible();
+  // Continuing is briefly locked after a mistake.
+  await page.waitForTimeout(700);
   await page.getByRole('button', { name: 'See results' }).click();
 
   await expect(page.getByRole('heading', { name: '1 / 2' })).toBeVisible();
