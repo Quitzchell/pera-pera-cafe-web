@@ -36,7 +36,7 @@ beforeEach(() => {
 });
 
 describe('DrillSession', () => {
-  it('submits, shows feedback and moves to the next item', async () => {
+  it('submits, shows feedback and moves on without leaving the input', async () => {
     const user = userEvent.setup();
     const { onComplete } = renderSession(standardRound);
 
@@ -51,16 +51,19 @@ describe('DrillSession', () => {
     expect(await screen.findByText('Correct')).toBeInTheDocument();
     expect(screen.getByText('泳いで')).toBeInTheDocument();
     expect(screen.getByText('ぐ → いで (泳ぐ → 泳いで)')).toBeInTheDocument();
-    expect(input).toBeDisabled();
+    expect(input).toHaveAttribute('readonly');
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
 
-    const next = screen.getByRole('button', { name: 'Next' });
-    expect(next).toHaveFocus();
+    // Focus stays in the input, so the mobile keyboard stays open; Enter continues.
+    expect(input).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
     await user.keyboard('{Enter}');
 
     expect(screen.getByRole('heading', { name: 'passive (受身形)' })).toBeInTheDocument();
-    expect(screen.getByLabelText(/your answer/i)).toBeEnabled();
-    expect(screen.getByLabelText(/your answer/i)).toHaveValue('');
+    expect(screen.getByLabelText(/your answer/i)).toBe(input);
+    expect(input).toHaveFocus();
+    expect(input).not.toHaveAttribute('readonly');
+    expect(input).toHaveValue('');
 
     answer.mockResolvedValueOnce({
       isCorrect: false,
@@ -69,12 +72,52 @@ describe('DrillSession', () => {
       ruleHint: 'る → られる',
       note: 'Passive and potential look the same for ichidan verbs.',
     });
-    await user.type(screen.getByLabelText(/your answer/i), 'みれる{Enter}');
+    await user.type(input, 'みれる{Enter}');
     expect(await screen.findByText('Not quite')).toBeInTheDocument();
     expect(screen.getByText(/look the same for ichidan/)).toBeInTheDocument();
 
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 1000);
     await user.click(screen.getByRole('button', { name: 'See results' }));
     expect(onComplete).toHaveBeenCalledOnce();
+    vi.restoreAllMocks();
+  });
+
+  it('ignores Enter for a moment after a wrong answer', async () => {
+    const user = userEvent.setup();
+    let now = 1_000_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    answer.mockResolvedValueOnce({ ...correctTe, isCorrect: false });
+    renderSession(standardRound);
+
+    await user.type(screen.getByLabelText(/your answer/i), 'およんで{Enter}');
+    expect(await screen.findByText('Not quite')).toBeInTheDocument();
+
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('heading', { name: 'te-form (て形)' })).toBeInTheDocument();
+
+    now += 700;
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('heading', { name: 'passive (受身形)' })).toBeInTheDocument();
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    ['oyoide', /type the answer in japanese/i],
+    ['オヨイデ', /not katakana/i],
+  ])('shakes instead of submitting %s', async (typed, hint) => {
+    const user = userEvent.setup();
+    renderSession(standardRound);
+    const input = screen.getByLabelText(/your answer/i);
+
+    await user.type(input, `${typed}{Enter}`);
+
+    expect(answer).not.toHaveBeenCalled();
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription(hint);
+    expect(input).not.toHaveAttribute('readonly');
+
+    await user.clear(input);
+    expect(input).not.toHaveAttribute('aria-invalid');
   });
 
   it('never submits on Enter while the IME is composing', async () => {
