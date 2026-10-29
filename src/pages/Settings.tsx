@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { FORM_EXAMPLES, FORM_LABELS } from '@/lib/labels';
+import { FORM_EXAMPLES, FORM_LABELS, FORMS_BY_LEVEL } from '@/lib/labels';
 
 const MIN_ROUND = 5;
 const MAX_ROUND = 50;
@@ -136,41 +136,66 @@ export function Settings() {
       </Card>
 
       <Card>
-        <fieldset className="grid gap-1">
-          <legend className="mb-2 text-lg font-semibold">Forms</legend>
-          <div className="mb-2 flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => change({ enabledForms: [...CONJUGATION_FORMS] })}
-            >
-              Select all
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => change({ enabledForms: [] })}
-            >
-              Clear
-            </Button>
-          </div>
-          <div className="grid sm:grid-cols-2">
-            {CONJUGATION_FORMS.map((form) => (
-              <Checkbox
-                key={form}
-                checked={draft.enabledForms.includes(form)}
-                onChange={(on) => change({ enabledForms: toggle(draft.enabledForms, form, on) })}
+        <h2 className="mb-1 text-lg font-semibold">Forms</h2>
+        <p className="text-muted-foreground mb-4 text-sm">
+          Grouped by the JLPT level where each form is usually taught.
+        </p>
+        <div className="grid gap-6">
+          {JLPT_LEVELS.map((level) => {
+            const forms = FORMS_BY_LEVEL[level];
+            const others = draft.enabledForms.filter((form) => !forms.includes(form));
+            return (
+              <div
+                key={level}
+                role="group"
+                aria-labelledby={`forms-${level}`}
+                className="grid gap-1"
               >
-                {FORM_LABELS[form]}
-                <span lang="ja" className="text-muted-foreground ml-2 text-sm">
-                  {FORM_EXAMPLES[form]}
-                </span>
-              </Checkbox>
-            ))}
-          </div>
-        </fieldset>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <h3 id={`forms-${level}`} className="font-semibold">
+                    {level}
+                  </h3>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      aria-label={`Enable all ${level} forms`}
+                      onClick={() => change({ enabledForms: [...others, ...forms] })}
+                    >
+                      All
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      aria-label={`Disable all ${level} forms`}
+                      onClick={() => change({ enabledForms: others })}
+                    >
+                      None
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2">
+                  {forms.map((form) => (
+                    <Checkbox
+                      key={form}
+                      checked={draft.enabledForms.includes(form)}
+                      onChange={(on) =>
+                        change({ enabledForms: toggle(draft.enabledForms, form, on) })
+                      }
+                    >
+                      {FORM_LABELS[form]}
+                      <span lang="ja" className="text-muted-foreground ml-2 text-sm">
+                        {FORM_EXAMPLES[form]}
+                      </span>
+                    </Checkbox>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </Card>
 
       <ErrorMessage error={error} />
