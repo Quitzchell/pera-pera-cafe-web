@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ApiError, progressApi } from '@/api';
 import type { DrillMode } from '@/api/types';
 import { useSignedIn } from '@/auth/useAuth';
+import { BoxDistribution } from '@/components/BoxDistribution';
 import { ErrorMessage, ErrorState } from '@/components/ErrorState';
 import { Loading } from '@/components/Loading';
 import { Card } from '@/components/ui/card';
@@ -73,7 +74,9 @@ export function Home() {
               <dt className="text-muted-foreground text-sm">Due today</dt>
               <dd className="mt-1 text-2xl font-semibold tabular-nums">
                 {progress.data.totals.dueToday}
-                <span className="text-muted-foreground ml-1 text-sm font-normal">rule groups</span>
+                <span className="text-muted-foreground ml-1 text-sm font-normal">
+                  {progress.data.totals.dueToday === 1 ? 'rule group' : 'rule groups'}
+                </span>
               </dd>
             </div>
             <div className="bg-card rounded-xl border p-4">
@@ -119,6 +122,15 @@ export function Home() {
               </ol>
             )}
           </Card>
+
+          {progress.data.ruleGroups.length > 0 && (
+            <Card aria-labelledby="boxes-heading">
+              <h2 id="boxes-heading" className="mb-3 text-lg font-semibold">
+                Rule groups per box
+              </h2>
+              <BoxDistribution ruleGroups={progress.data.ruleGroups} />
+            </Card>
+          )}
         </>
       )}
     </div>
