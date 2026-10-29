@@ -7,32 +7,36 @@ export function Feedback({ result }: { result: AnswerResult }) {
   return (
     <div
       className={cn(
-        'grid gap-2 rounded-xl border p-4',
+        'grid gap-1 rounded-xl border px-4 py-3',
         isCorrect ? 'border-success/50' : 'border-destructive/50',
       )}
     >
-      <p className={cn('text-lg font-semibold', isCorrect ? 'text-success' : 'text-destructive')}>
-        <span aria-hidden>{isCorrect ? '✓ ' : '✗ '}</span>
-        {isCorrect ? 'Correct' : 'Not quite'}
-      </p>
-      <p>
-        <span className="sr-only">Expected: </span>
-        <span lang="ja" className="text-2xl">
-          {expected.kanji}
+      <p className="flex flex-wrap items-baseline gap-x-3">
+        <span className={cn('font-semibold', isCorrect ? 'text-success' : 'text-destructive')}>
+          <span aria-hidden>{isCorrect ? '✓ ' : '✗ '}</span>
+          {isCorrect ? 'Correct' : 'Not quite'}
         </span>
-        {expected.kana !== expected.kanji && (
-          <span lang="ja" className="text-muted-foreground ml-2">
-            {expected.kana}
+        <span>
+          <span className="sr-only">Expected: </span>
+          <span lang="ja" className="text-xl">
+            {expected.kanji}
           </span>
-        )}
+          {expected.kana !== expected.kanji && (
+            <span lang="ja" className="text-muted-foreground ml-2 text-sm">
+              {expected.kana}
+            </span>
+          )}
+        </span>
       </p>
-      <p lang="ja" className="text-muted-foreground">
+      <p lang="ja" className="text-muted-foreground text-sm">
         <span className="sr-only" lang="en">
           Rule:{' '}
         </span>
         {ruleHint}
       </p>
-      {note && <p className="bg-warning text-warning-foreground rounded-lg p-2 text-sm">{note}</p>}
+      {note && (
+        <p className="bg-warning text-warning-foreground mt-1 rounded-lg p-2 text-sm">{note}</p>
+      )}
     </div>
   );
 }

@@ -9,10 +9,11 @@ import { contrastRound, correctTe, examRound, standardRound } from '@/test/fixtu
 
 vi.mock('@/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api')>();
-  return { ...actual, drillApi: { ...actual.drillApi, answer: vi.fn() } };
+  return { ...actual, drillApi: { ...actual.drillApi, answer: vi.fn(), retry: vi.fn() } };
 });
 
 const answer = vi.mocked(drillApi.answer);
+const retry = vi.mocked(drillApi.retry);
 
 function renderSession(
   round: Round,
@@ -32,7 +33,9 @@ function renderSession(
 
 beforeEach(() => {
   answer.mockReset();
+  retry.mockReset();
   answer.mockResolvedValue(correctTe);
+  retry.mockResolvedValue(correctTe);
 });
 
 describe('DrillSession', () => {
@@ -40,7 +43,7 @@ describe('DrillSession', () => {
     const user = userEvent.setup();
     const { onComplete } = renderSession(standardRound);
 
-    const input = screen.getByLabelText(/your answer/i);
+    const input = screen.getByRole('textbox');
     expect(input).toHaveFocus();
     expect(input).toHaveAttribute('lang', 'ja');
     expect(screen.getByRole('heading', { name: 'te-form (て形)' })).toBeInTheDocument();
@@ -60,7 +63,7 @@ describe('DrillSession', () => {
     await user.keyboard('{Enter}');
 
     expect(screen.getByRole('heading', { name: 'passive (受身形)' })).toBeInTheDocument();
-    expect(screen.getByLabelText(/your answer/i)).toBe(input);
+    expect(screen.getByRole('textbox')).toBe(input);
     expect(input).toHaveFocus();
     expect(input).not.toHaveAttribute('readonly');
     expect(input).toHaveValue('');
@@ -76,9 +79,57 @@ describe('DrillSession', () => {
     expect(await screen.findByText('Not quite')).toBeInTheDocument();
     expect(screen.getByText(/look the same for ichidan/)).toBeInTheDocument();
 
+    // The missed card comes back; only a right retry clears it.
     vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 1000);
-    await user.click(screen.getByRole('button', { name: 'See results' }));
+    expect(screen.queryByRole('button', { name: 'See results' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByText('Try again')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'passive (受身形)' })).toBeInTheDocument();
+    expect(input).toHaveValue('');
+
+    retry.mockResolvedValueOnce({
+      ...correctTe,
+      expected: { kanji: '見られる', kana: 'みられる' },
+    });
+    await user.type(input, 'みられる{Enter}');
+    expect(retry).toHaveBeenCalledWith('r1', 'i2', 'みられる');
+    expect(answer).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2');
+
+    await user.click(await screen.findByRole('button', { name: 'See results' }));
     expect(onComplete).toHaveBeenCalledOnce();
+    vi.restoreAllMocks();
+  });
+
+  it('brings a missed card back a few cards later', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(Date, 'now').mockReturnValue(0);
+    const items = ['a', 'b', 'c', 'd', 'e'].map((id, position) => ({
+      ...standardRound.items[0],
+      id,
+      position,
+    }));
+    answer.mockResolvedValueOnce({ ...correctTe, isCorrect: false });
+    renderSession({ ...standardRound, items });
+    const input = screen.getByRole('textbox');
+    const progress = screen.getByRole('progressbar');
+
+    await user.type(input, 'およんで{Enter}');
+    await screen.findByText('Not quite');
+    vi.spyOn(Date, 'now').mockReturnValue(1000);
+
+    const seen: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      await user.keyboard('{Enter}');
+      seen.push(screen.queryByText('Try again') ? 'retry' : 'new');
+      await user.type(input, 'およいで{Enter}');
+      await screen.findByText('Correct');
+    }
+
+    expect(seen).toEqual(['new', 'new', 'new', 'retry', 'new']);
+    expect(retry).toHaveBeenCalledOnce();
+    expect(retry).toHaveBeenCalledWith('r1', 'a', 'およいで');
+    expect(progress).toHaveAttribute('aria-valuenow', '5');
     vi.restoreAllMocks();
   });
 
@@ -89,7 +140,7 @@ describe('DrillSession', () => {
     answer.mockResolvedValueOnce({ ...correctTe, isCorrect: false });
     renderSession(standardRound);
 
-    await user.type(screen.getByLabelText(/your answer/i), 'およんで{Enter}');
+    await user.type(screen.getByRole('textbox'), 'およんで{Enter}');
     expect(await screen.findByText('Not quite')).toBeInTheDocument();
 
     await user.keyboard('{Enter}');
@@ -107,7 +158,7 @@ describe('DrillSession', () => {
   ])('shakes instead of submitting %s', async (typed, hint) => {
     const user = userEvent.setup();
     renderSession(standardRound);
-    const input = screen.getByLabelText(/your answer/i);
+    const input = screen.getByRole('textbox');
 
     await user.type(input, `${typed}{Enter}`);
 
@@ -122,7 +173,7 @@ describe('DrillSession', () => {
 
   it('never submits on Enter while the IME is composing', async () => {
     renderSession(standardRound);
-    const input = screen.getByLabelText(/your answer/i);
+    const input = screen.getByRole('textbox');
 
     fireEvent.compositionStart(input);
     fireEvent.change(input, { target: { value: '泳いで' } });
@@ -138,12 +189,20 @@ describe('DrillSession', () => {
     expect(await screen.findByText('Correct')).toBeInTheDocument();
   });
 
+  it('labels the answer field with the question itself', () => {
+    renderSession(standardRound, { romajiInput: true });
+    const input = screen.getByRole('textbox');
+
+    expect(input).toHaveAccessibleName('泳ぐ (およぐ) te-form (て形)');
+    expect(input).toHaveAccessibleDescription('Romaji is converted to kana');
+  });
+
   it('converts romaji to kana when enabled', async () => {
     const user = userEvent.setup();
     renderSession(standardRound, { romajiInput: true });
 
-    await user.type(screen.getByLabelText(/your answer/i), 'oyoide');
-    expect(screen.getByLabelText(/your answer/i)).toHaveValue('およいで');
+    await user.type(screen.getByRole('textbox'), 'oyoide');
+    expect(screen.getByRole('textbox')).toHaveValue('およいで');
 
     await user.keyboard('{Enter}');
     expect(answer).toHaveBeenCalledWith('r1', 'i1', 'およいで');
@@ -189,7 +248,7 @@ describe('DrillSession', () => {
     renderSession(contrastRound);
 
     expect(screen.queryByText(/compare with/i)).not.toBeInTheDocument();
-    await user.type(screen.getByLabelText(/your answer/i), 'みられる{Enter}');
+    await user.type(screen.getByRole('textbox'), 'みられる{Enter}');
     await user.click(await screen.findByRole('button', { name: 'Next' }));
 
     expect(screen.getByText('Compare with potential (可能形)')).toBeInTheDocument();

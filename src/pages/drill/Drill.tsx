@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useBlocker, useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -9,7 +10,6 @@ import { DrillSession } from '@/components/drill/DrillSession';
 import { ErrorMessage } from '@/components/ErrorState';
 import { Button } from '@/components/ui/button';
 import { endRound, isRoundLive } from '@/hooks/useStartRound';
-import { MODE_LABELS } from '@/lib/labels';
 
 function useFinishRound(roundId: string) {
   const navigate = useNavigate();
@@ -75,17 +75,18 @@ function ActiveRound({ round }: { round: Round }) {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between">
-        <p className="text-muted-foreground text-sm font-medium">{MODE_LABELS[round.mode]} round</p>
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/">Quit</Link>
-        </Button>
-      </div>
       <DrillSession
         round={round}
         showFurigana={settings.showFurigana}
         romajiInput={settings.romajiInput}
         completing={pending}
+        quit={
+          <Button variant="ghost" size="icon" className="-ml-2 shrink-0" asChild>
+            <Link to="/" aria-label="Quit round">
+              <X aria-hidden />
+            </Link>
+          </Button>
+        }
         onComplete={() => void finish(() => (leaving.current = true))}
       />
       <div className="mt-4">

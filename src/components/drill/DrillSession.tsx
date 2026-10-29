@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { ArrowDown, RotateCcw } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { ApiError, drillApi } from '@/api';
 import type { AnswerResult, Round } from '@/api/types';
@@ -8,7 +9,8 @@ import { Feedback } from '@/components/drill/Feedback';
 import { ErrorMessage } from '@/components/ErrorState';
 import { Furigana } from '@/components/Furigana';
 import { Button } from '@/components/ui/button';
-import { FORM_LABELS } from '@/lib/labels';
+import { FORM_LABELS, MODE_LABELS } from '@/lib/labels';
+import { advance, initialPile } from '@/lib/pile';
 
 type Answered = AnswerResult & { answer: string };
 
@@ -20,6 +22,7 @@ interface DrillSessionProps {
   showFurigana: boolean;
   romajiInput: boolean;
   completing?: boolean;
+  quit?: ReactNode;
   onComplete: () => void;
 }
 
@@ -28,32 +31,43 @@ export function DrillSession({
   showFurigana,
   romajiInput,
   completing = false,
+  quit,
   onComplete,
 }: DrillSessionProps) {
-  const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, Answered>>({});
+  const [pile, setPile] = useState(() => initialPile(round));
+  const [result, setResult] = useState<Answered | null>(null);
+  const [cleared, setCleared] = useState(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const continueAfter = useRef(0);
 
   const total = round.items.length;
-  const item = round.items[index];
-  const result = answers[item.id];
-  const answeredCount = Object.keys(answers).length;
-  const isLast = index === total - 1;
-  const isExam = round.mode === 'EXAM' && item.choices !== undefined;
+  const card = pile[0];
+  const cardKey = `${card.itemId}:${card.attempt}`;
+  const item = round.items.find((roundItem) => roundItem.id === card.itemId) ?? round.items[0];
+  const isRetry = card.attempt > 0;
+  const choices = round.mode === 'EXAM' ? card.choices : undefined;
+  const isExam = choices !== undefined;
   const pairedItem =
-    round.mode === 'CONTRAST' && item.position % 2 === 1 ? round.items[index - 1] : undefined;
+    round.mode === 'CONTRAST' && !isRetry && item.position % 2 === 1
+      ? round.items[item.position - 1]
+      : undefined;
   const conflict = error instanceof ApiError && error.status === 409;
+  const isLast = pile.length === 1 && (conflict || Boolean(result?.isCorrect));
+  const continueLabel = isLast ? (completing ? 'Finishing…' : 'See results') : 'Next';
 
   async function submit(answer: string) {
     if (pending || result) return;
     setPending(true);
     setError(null);
     try {
-      const answerResult = await drillApi.answer(round.id, item.id, answer);
-      if (!answerResult.isCorrect) continueAfter.current = Date.now() + MISTAKE_DELAY_MS;
-      setAnswers((current) => ({ ...current, [item.id]: { ...answerResult, answer } }));
+      // Only the first try is recorded; retries are graded without counting.
+      const answerResult = isRetry
+        ? await drillApi.retry(round.id, item.id, answer)
+        : await drillApi.answer(round.id, item.id, answer);
+      if (answerResult.isCorrect) setCleared((count) => count + 1);
+      else continueAfter.current = Date.now() + MISTAKE_DELAY_MS;
+      setResult({ ...answerResult, answer });
     } catch (caught) {
       setError(caught);
     } finally {
@@ -64,9 +78,16 @@ export function DrillSession({
   function next() {
     if (!result && !conflict) return;
     if (Date.now() < continueAfter.current) return;
+    const correct = conflict || Boolean(result?.isCorrect);
+    const rest = advance(pile, correct);
     setError(null);
-    if (isLast) onComplete();
-    else setIndex(index + 1);
+    if (conflict) setCleared(cleared + 1);
+    if (rest.length === 0) {
+      onComplete();
+      return;
+    }
+    setPile(rest);
+    setResult(null);
   }
 
   useEffect(() => {
@@ -88,8 +109,8 @@ export function DrillSession({
         }
         return;
       }
-      if (isExam && item.choices) {
-        const choice = item.choices[Number(event.key) - 1];
+      if (choices) {
+        const choice = choices[Number(event.key) - 1];
         if (choice !== undefined && /^[1-9]$/.test(event.key)) {
           event.preventDefault();
           void submit(choice);
@@ -102,38 +123,41 @@ export function DrillSession({
   });
 
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-2">
-        <div className="text-muted-foreground flex justify-between text-sm">
-          <span>
-            Question {index + 1} of {total}
-          </span>
-          <span>
-            {answeredCount} / {total}
-          </span>
-        </div>
+    <div className="grid gap-5">
+      <div className="flex items-center gap-3">
+        {quit}
         <div
           role="progressbar"
-          aria-label="Round progress"
+          aria-label={`${MODE_LABELS[round.mode]} round progress`}
           aria-valuemin={0}
           aria-valuemax={total}
-          aria-valuenow={answeredCount}
-          aria-valuetext={`${answeredCount} of ${total} answered`}
-          className="bg-muted h-2 overflow-hidden rounded-full"
+          aria-valuenow={cleared}
+          aria-valuetext={`${cleared} of ${total} done`}
+          className="bg-muted h-2 flex-1 overflow-hidden rounded-full"
         >
           <div
             className="bg-primary h-full rounded-full transition-[width] motion-reduce:transition-none"
-            style={{ width: `${(answeredCount / total) * 100}%` }}
+            style={{ width: `${(cleared / total) * 100}%` }}
           />
         </div>
+        <span className="text-muted-foreground text-sm tabular-nums" aria-hidden>
+          {cleared}/{total}
+        </span>
       </div>
 
-      <section aria-label="Prompt" className="grid justify-items-center gap-3 text-center">
-        {pairedItem && (
-          <p className="bg-accent text-accent-foreground rounded-full px-3 py-1 text-sm">
-            Compare with {FORM_LABELS[pairedItem.form]}
+      <section
+        aria-label="Question"
+        className="bg-card relative grid justify-items-center gap-1 rounded-2xl border px-4 py-6 text-center"
+      >
+        {isRetry && (
+          <p className="text-muted-foreground absolute top-3 left-3 flex items-center gap-1 text-xs font-medium">
+            <RotateCcw aria-hidden className="size-3.5" /> Try again
           </p>
         )}
+        <span id="prompt-verb" hidden>
+          {item.verb.dictionaryForm}
+          {item.verb.reading !== item.verb.dictionaryForm && ` (${item.verb.reading})`}
+        </span>
         <p className="text-5xl leading-tight font-medium sm:text-6xl">
           <Furigana
             word={item.verb.dictionaryForm}
@@ -141,15 +165,25 @@ export function DrillSession({
             show={showFurigana}
           />
         </p>
-        <p className="text-muted-foreground">{item.verb.meaning}</p>
-        <p className="text-muted-foreground text-sm">Conjugate to</p>
-        <h1 className="text-2xl font-semibold">{FORM_LABELS[item.form]}</h1>
+        <p className="text-muted-foreground text-sm">{item.verb.meaning}</p>
+        <ArrowDown aria-hidden className="text-muted-foreground my-2 size-5" />
+        <h1
+          id="prompt-form"
+          className="bg-primary/10 text-primary rounded-full px-4 py-1.5 text-lg font-semibold"
+        >
+          {FORM_LABELS[item.form]}
+        </h1>
+        {pairedItem && (
+          <p className="text-muted-foreground mt-1 text-sm">
+            Compare with {FORM_LABELS[pairedItem.form]}
+          </p>
+        )}
       </section>
 
-      {isExam && item.choices ? (
+      {isExam ? (
         <ExamChoices
-          key={item.id}
-          choices={item.choices}
+          key={cardKey}
+          choices={choices}
           disabled={pending || Boolean(result)}
           picked={result?.answer}
           expectedKana={result?.expected.kana}
@@ -157,10 +191,12 @@ export function DrillSession({
         />
       ) : (
         <AnswerInput
-          itemId={item.id}
+          itemId={cardKey}
           locked={pending || Boolean(result)}
           status={result ? (result.isCorrect ? 'correct' : 'wrong') : undefined}
           romaji={romajiInput}
+          continueLabel={result ? continueLabel : undefined}
+          continueDisabled={completing}
           onSubmit={(answer) => void submit(answer)}
           onContinue={next}
         />
@@ -172,16 +208,9 @@ export function DrillSession({
 
       <ErrorMessage error={error} />
 
-      {(result || conflict) && (
-        <Button
-          size="lg"
-          onClick={next}
-          disabled={completing}
-          // Typed answers keep focus in the input; Enter there continues.
-          autoFocus={isExam || conflict}
-          onMouseDown={(event) => !isExam && event.preventDefault()}
-        >
-          {isLast ? (completing ? 'Finishing…' : 'See results') : 'Next'}
+      {((isExam && result) || conflict) && (
+        <Button size="lg" onClick={next} disabled={completing} autoFocus>
+          {continueLabel}
         </Button>
       )}
     </div>
