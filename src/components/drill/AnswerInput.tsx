@@ -24,6 +24,9 @@ interface AnswerInputProps {
   locked: boolean;
   status?: 'correct' | 'wrong';
   romaji: boolean;
+  /** Shown in place of Check once the answer is marked. */
+  continueLabel?: string;
+  continueDisabled?: boolean;
   onSubmit: (answer: string) => void;
   onContinue: () => void;
 }
@@ -33,6 +36,8 @@ export function AnswerInput({
   locked,
   status,
   romaji,
+  continueLabel,
+  continueDisabled,
   onSubmit,
   onContinue,
 }: AnswerInputProps) {
@@ -78,64 +83,91 @@ export function AnswerInput({
 
   return (
     <form
-      className="grid gap-2"
+      className="grid gap-1.5"
       onSubmit={(event) => {
         event.preventDefault();
         if (!composing.current) submit();
       }}
     >
-      <label htmlFor="answer" className="text-muted-foreground text-sm">
-        Your answer{romaji ? ' (romaji is converted to kana)' : ''}
-      </label>
       <div className="flex gap-2">
-        <input
-          ref={inputRef}
-          id="answer"
-          lang="ja"
-          type="text"
-          inputMode="text"
-          enterKeyHint={locked ? 'next' : 'done'}
-          autoFocus
-          autoCapitalize="off"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          maxLength={100}
-          readOnly={locked}
-          aria-invalid={hint ? true : undefined}
-          aria-describedby={hint ? 'answer-hint' : undefined}
-          value={value}
-          onChange={(event) => {
-            const next = event.target.value;
-            const isComposing = (event.nativeEvent as InputEvent).isComposing;
-            setValue(romaji && !isComposing ? toKana(next.toLowerCase(), { IMEMode: true }) : next);
-            setHint(null);
-          }}
-          onCompositionStart={() => {
-            composing.current = true;
-          }}
-          onCompositionEnd={() => {
-            composing.current = false;
-          }}
-          onKeyDown={handleKeyDown}
-          onAnimationEnd={() => setShaking(false)}
-          className={cn(
-            'bg-card border-input focus-visible:border-ring focus-visible:ring-ring/50 h-16 w-full min-w-0 rounded-xl border px-4 text-2xl transition-colors outline-none read-only:cursor-default focus-visible:ring-[3px]',
-            shaking && 'motion-safe:animate-shake',
-            hint &&
-              'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30',
-            status === 'correct' &&
-              'border-success bg-success/10 focus-visible:border-success focus-visible:ring-success/30',
-            status === 'wrong' &&
-              'border-destructive bg-destructive/10 focus-visible:border-destructive focus-visible:ring-destructive/30',
+        <div className="relative min-w-0 flex-1">
+          <input
+            ref={inputRef}
+            id="answer"
+            lang="ja"
+            type="text"
+            inputMode="text"
+            enterKeyHint={locked ? 'next' : 'done'}
+            autoFocus
+            autoCapitalize="off"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={100}
+            readOnly={locked}
+            aria-invalid={hint ? true : undefined}
+            // The visible question labels the input: "泳ぐ … te-form (て形)".
+            aria-labelledby="prompt-verb prompt-form"
+            aria-describedby={
+              [hint && 'answer-hint', romaji && 'answer-romaji'].filter(Boolean).join(' ') ||
+              undefined
+            }
+            value={value}
+            onChange={(event) => {
+              const next = event.target.value;
+              const isComposing = (event.nativeEvent as InputEvent).isComposing;
+              setValue(
+                romaji && !isComposing ? toKana(next.toLowerCase(), { IMEMode: true }) : next,
+              );
+              setHint(null);
+            }}
+            onCompositionStart={() => {
+              composing.current = true;
+            }}
+            onCompositionEnd={() => {
+              composing.current = false;
+            }}
+            onKeyDown={handleKeyDown}
+            onAnimationEnd={() => setShaking(false)}
+            className={cn(
+              'bg-card border-input focus-visible:border-ring focus-visible:ring-ring/50 h-16 w-full min-w-0 rounded-xl border px-4 text-2xl transition-colors outline-none read-only:cursor-default focus-visible:ring-[3px]',
+              romaji && 'pr-20',
+              shaking && 'motion-safe:animate-shake',
+              hint &&
+                'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30',
+              status === 'correct' &&
+                'border-success bg-success/10 focus-visible:border-success focus-visible:ring-success/30',
+              status === 'wrong' &&
+                'border-destructive bg-destructive/10 focus-visible:border-destructive focus-visible:ring-destructive/30',
+            )}
+          />
+          {romaji && (
+            <span
+              id="answer-romaji"
+              className="bg-muted text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-2 py-0.5 text-xs"
+            >
+              <span aria-hidden>a→あ</span>
+              <span className="sr-only">Romaji is converted to kana</span>
+            </span>
           )}
-        />
-        {!locked && (
+        </div>
+        {continueLabel ? (
+          <Button
+            type="button"
+            size="lg"
+            className="h-16 min-w-28"
+            disabled={continueDisabled}
+            onClick={onContinue}
+            onMouseDown={(event) => event.preventDefault()}
+          >
+            {continueLabel}
+          </Button>
+        ) : (
           <Button
             type="submit"
             size="lg"
-            className="h-16"
-            disabled={!value.trim()}
+            className="h-16 min-w-28"
+            disabled={locked || !value.trim()}
             // Keep focus in the input so the mobile keyboard stays open.
             onMouseDown={(event) => event.preventDefault()}
           >
@@ -143,7 +175,7 @@ export function AnswerInput({
           </Button>
         )}
       </div>
-      <p id="answer-hint" aria-live="polite" className="text-destructive min-h-5 text-sm">
+      <p id="answer-hint" aria-live="polite" className="text-destructive text-sm empty:hidden">
         {hint}
       </p>
     </form>
