@@ -36,7 +36,7 @@ export function AppLayout() {
         Skip to content
       </a>
       <header className="border-b">
-        <div className="mx-auto flex max-w-3xl items-center gap-1 overflow-x-auto px-4 py-1">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-1 px-4 py-1">
           <NavLink
             to="/"
             className="mr-2 shrink-0 text-base font-semibold"
@@ -44,7 +44,10 @@ export function AppLayout() {
           >
             <span lang="ja">ぺらぺら</span>
           </NavLink>
-          <nav aria-label="Main" className="flex gap-1">
+          <nav
+            aria-label="Main"
+            className="order-last -mx-3 flex w-[calc(100%+1.5rem)] gap-1 overflow-x-auto sm:order-none sm:mx-0 sm:w-auto"
+          >
             <NavItem to="/">Home</NavItem>
             <NavItem to="/progress">Progress</NavItem>
             <NavItem to="/settings">Settings</NavItem>
