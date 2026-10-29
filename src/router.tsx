@@ -1,6 +1,6 @@
-import type { RouteObject } from 'react-router-dom';
+import { Navigate, type RouteObject } from 'react-router-dom';
 
-import { AppLayout } from '@/components/AppLayout';
+import { AppLayout, FocusLayout } from '@/components/AppLayout';
 import { Loading } from '@/components/Loading';
 import { NotFound } from '@/pages/NotFound';
 import { RequireAdmin } from '@/routing/RequireAdmin';
@@ -26,15 +26,20 @@ export const routes: RouteObject[] = [
         Component: RequireAuth,
         children: [
           {
+            Component: FocusLayout,
+            children: [
+              {
+                path: 'drill/:roundId',
+                lazy: () => import('@/pages/drill/Drill').then((m) => ({ Component: m.Drill })),
+              },
+            ],
+          },
+          {
             Component: AppLayout,
             children: [
               {
                 index: true,
                 lazy: () => import('@/pages/Home').then((m) => ({ Component: m.Home })),
-              },
-              {
-                path: 'drill/:roundId',
-                lazy: () => import('@/pages/drill/Drill').then((m) => ({ Component: m.Drill })),
               },
               {
                 path: 'rounds/:roundId/summary',
@@ -53,6 +58,7 @@ export const routes: RouteObject[] = [
                 path: 'admin',
                 Component: RequireAdmin,
                 children: [
+                  { index: true, element: <Navigate to="users" replace /> },
                   {
                     path: 'users',
                     lazy: () => import('@/pages/admin/Users').then((m) => ({ Component: m.Users })),
