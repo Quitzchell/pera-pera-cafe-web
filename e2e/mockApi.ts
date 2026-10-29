@@ -1,8 +1,8 @@
 import type { Page, Route } from '@playwright/test';
 
-import type { AnswerResult, Round, Settings, User } from '../src/api/types';
+import type { AdminUser, AnswerResult, Round, Settings, User } from '../src/api/types';
 
-interface Account extends User {
+interface Account extends AdminUser {
   password: string | null;
 }
 
@@ -34,8 +34,8 @@ const expected: Record<string, AnswerResult> = {
 function account(id: string, role: User['role'], status: User['status'], password: string | null) {
   return {
     id,
+    username: id,
     email: `${id}@example.com`,
-    displayName: id[0].toUpperCase() + id.slice(1),
     role,
     status,
     createdAt: '2026-10-01T00:00:00.000Z',
@@ -56,10 +56,15 @@ export async function mockApi(page: Page) {
   const rounds = new Map<string, Round>();
   const answers = new Map<string, { answer: string; result: AnswerResult }>();
 
-  const publicUser = (user: Account): User => {
-    const { password, ...rest } = user;
+  const adminUser = (account: Account): AdminUser => {
+    const { password, ...user } = account;
     void password;
-    return rest;
+    return user;
+  };
+  const publicUser = (account: Account): User => {
+    const { email, ...user } = adminUser(account);
+    void email;
+    return user;
   };
   const reply = (route: Route, status: number, body?: unknown) =>
     route.fulfill({
@@ -81,9 +86,12 @@ export async function mockApi(page: Page) {
 
       if (key === 'POST /auth/login') {
         const match = accounts.find(
-          (a) => a.email === body?.email && a.password && a.password === body?.password,
+          (a) =>
+            a.username === body?.username?.toLowerCase() &&
+            a.password &&
+            a.password === body?.password,
         );
-        if (!match) return fail(route, 401, 'Invalid email or password');
+        if (!match) return fail(route, 401, 'Invalid username or password');
         signedIn = match;
         return reply(route, 200, { user: publicUser(match), csrfToken: 'csrf' });
       }
@@ -129,12 +137,26 @@ export async function mockApi(page: Page) {
       const answerMatch = path.match(/^\/drill\/rounds\/([^/]+)\/items\/([^/]+)\/answer$/);
       if (answerMatch && request.method() === 'POST') {
         const item = rounds.get(answerMatch[1])?.items.find((i) => i.id === answerMatch[2]);
-        if (!item) return fail(route, 404, 'Round not found');
+        if (!rounds.has(answerMatch[1])) return fail(route, 404, 'Round not found');
+        if (!item) return fail(route, 404, 'Item not found');
         const right = expected[item.form];
         const isCorrect = [right.expected.kana, right.expected.kanji].includes(body?.answer ?? '');
         const result = { ...right, isCorrect };
         answers.set(item.id, { answer: body?.answer ?? '', result });
         return reply(route, 200, result);
+      }
+      const retryMatch = path.match(/^\/drill\/rounds\/([^/]+)\/items\/([^/]+)\/retry$/);
+      if (retryMatch && request.method() === 'POST') {
+        const item = rounds.get(retryMatch[1])?.items.find((i) => i.id === retryMatch[2]);
+        if (!rounds.has(retryMatch[1])) return fail(route, 404, 'Round not found');
+        if (!item) return fail(route, 404, 'Item not found');
+        const first = answers.get(item.id);
+        if (!first || first.result.isCorrect) {
+          return fail(route, 409, 'Only a missed item can be retried');
+        }
+        const right = expected[item.form];
+        const isCorrect = [right.expected.kana, right.expected.kanji].includes(body?.answer ?? '');
+        return reply(route, 200, { ...right, isCorrect });
       }
       const finishMatch = path.match(/^\/drill\/rounds\/([^/]+)\/finish$/);
       if (finishMatch && request.method() === 'POST') {
@@ -187,21 +209,22 @@ export async function mockApi(page: Page) {
         });
       }
 
-      if (key === 'GET /admin/users') return reply(route, 200, accounts.map(publicUser));
+      if (key === 'GET /admin/users') return reply(route, 200, accounts.map(adminUser));
       if (key === 'POST /admin/users') {
-        if (accounts.some((a) => a.email === body?.email)) {
-          return fail(route, 409, 'A user with this email already exists');
+        const username = body?.username?.toLowerCase() ?? '';
+        if (accounts.some((a) => a.username === username || a.email === body?.email)) {
+          return fail(route, 409, 'A user with this username or email already exists');
         }
         const created: Account = {
           ...account(`user${accounts.length}`, 'LEARNER', 'INVITED', null),
+          username,
           email: body?.email ?? '',
-          displayName: body?.displayName ?? '',
         };
         accounts.push(created);
         const token = `token-${created.id}`;
         invites.set(token, created.id);
         return reply(route, 201, {
-          user: publicUser(created),
+          user: adminUser(created),
           link: `${url.origin}/invite/${token}`,
           expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
         });

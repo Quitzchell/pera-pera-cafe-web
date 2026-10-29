@@ -44,14 +44,21 @@ describe('request', () => {
   it('turns validation errors into a list of messages', async () => {
     mockFetch({
       'POST /admin/users': () =>
-        json({ statusCode: 400, error: 'Bad Request', message: ['email must be an email'] }, 400),
+        json(
+          {
+            statusCode: 400,
+            error: 'Bad Request',
+            message: ['username must be 3-30 characters: a-z, 0-9, _ or -'],
+          },
+          400,
+        ),
     });
 
     const error = await request<never>('/admin/users', { method: 'POST', body: {} }).catch(
       (e: unknown) => e as ApiError,
     );
     expect(error).toBeInstanceOf(ApiError);
-    expect(error.messages).toEqual(['email must be an email']);
+    expect(error.messages).toEqual(['username must be 3-30 characters: a-z, 0-9, _ or -']);
   });
 
   it('reports network failures as status 0', async () => {

@@ -10,7 +10,7 @@ export type AuthState =
 
 export interface AuthContextValue {
   state: AuthState;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateSettings: (changes: Partial<Settings>) => Promise<Settings>;
   retry: () => void;

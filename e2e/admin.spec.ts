@@ -8,17 +8,18 @@ test('admin creates a user and copies the invite link', async ({ page, context, 
   await mockApi(page);
 
   await page.goto('/sign-in');
-  await page.getByLabel('Email').fill('admin@example.com');
+  await page.getByLabel('Username').fill('admin');
   await page.getByLabel('Password').fill('admin-password-123');
   await page.getByRole('button', { name: 'Sign in' }).click();
 
-  await page.getByRole('link', { name: 'Users' }).click();
+  await page.getByRole('link', { name: 'Admin' }).click();
   await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible();
-  await page.getByLabel('Name').fill('Kenji');
+  await page.getByRole('button', { name: 'Invite learner' }).click();
+  await page.getByLabel('Username').fill('Kenji');
   await page.getByLabel('Email').fill('kenji@example.com');
   await page.getByRole('button', { name: 'Create user' }).click();
 
-  const link = page.getByRole('textbox', { name: 'Invite link for Kenji' });
+  const link = page.getByRole('textbox', { name: 'Invite link for kenji' });
   await expect(link).toHaveValue(/\/invite\/token-/);
   await expect(page.getByText(/^Expires /)).toBeVisible();
   await expect(page.getByText('kenji@example.com')).toBeVisible();

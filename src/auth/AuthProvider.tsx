@@ -64,8 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [attempt]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const { user, csrfToken } = await authApi.login(email, password);
+  const signIn = useCallback(async (username: string, password: string) => {
+    const { user, csrfToken } = await authApi.login(username, password);
     setCsrfToken(csrfToken);
     const settings = await loadSettings();
     setState({ status: 'signedIn', user, settings });
