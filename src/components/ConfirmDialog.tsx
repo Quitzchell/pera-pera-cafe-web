@@ -1,5 +1,6 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
+import { Dialog } from '@/components/Dialog';
 import { Button } from '@/components/ui/button';
 
 interface ConfirmDialogProps {
@@ -25,29 +26,9 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const ref = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
   return (
-    <dialog
-      ref={ref}
-      aria-labelledby="confirm-title"
-      onCancel={(event) => {
-        event.preventDefault();
-        onCancel();
-      }}
-      className="bg-card text-card-foreground m-auto w-[min(28rem,calc(100%-2rem))] rounded-xl border p-6 backdrop:bg-black/50"
-    >
-      <h2 id="confirm-title" className="text-lg font-semibold">
-        {title}
-      </h2>
-      {children && <div className="text-muted-foreground mt-2">{children}</div>}
+    <Dialog open={open} title={title} onClose={onCancel}>
+      {children && <div className="text-muted-foreground">{children}</div>}
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button variant="outline" onClick={onCancel} autoFocus>
           {cancelLabel}
@@ -60,6 +41,6 @@ export function ConfirmDialog({
           {confirmLabel}
         </Button>
       </div>
-    </dialog>
+    </Dialog>
   );
 }
