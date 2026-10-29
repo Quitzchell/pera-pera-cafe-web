@@ -1,5 +1,6 @@
 import { API_BASE, request } from '@/api/client';
 import type {
+  AdminUser,
   AnswerResult,
   CreatedUser,
   DrillMode,
@@ -17,10 +18,10 @@ import type {
 export { ApiError } from '@/api/client';
 
 export const authApi = {
-  login: (email: string, password: string) =>
+  login: (username: string, password: string) =>
     request<{ user: User; csrfToken: string }>('/auth/login', {
       method: 'POST',
-      body: { email, password },
+      body: { username, password },
       isPublic: true,
     }),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
@@ -53,6 +54,12 @@ export const drillApi = {
       `/drill/rounds/${encodeURIComponent(roundId)}/items/${encodeURIComponent(itemId)}/answer`,
       { method: 'POST', body: { answer } },
     ),
+  /** Grades another try at a missed item. Nothing is recorded: only the first answer counts. */
+  retry: (roundId: string, itemId: string, answer: string) =>
+    request<AnswerResult>(
+      `/drill/rounds/${encodeURIComponent(roundId)}/items/${encodeURIComponent(itemId)}/retry`,
+      { method: 'POST', body: { answer } },
+    ),
   finish: (roundId: string) =>
     request<RoundSummary>(`/drill/rounds/${encodeURIComponent(roundId)}/finish`, {
       method: 'POST',
@@ -67,11 +74,14 @@ export const progressApi = {
 };
 
 export const adminApi = {
-  users: () => request<User[]>('/admin/users'),
-  createUser: (email: string, displayName: string) =>
-    request<CreatedUser>('/admin/users', { method: 'POST', body: { email, displayName } }),
-  updateUser: (id: string, changes: { displayName?: string; disabled?: boolean }) =>
-    request<User>(`/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: changes }),
+  users: () => request<AdminUser[]>('/admin/users'),
+  createUser: (username: string, email: string) =>
+    request<CreatedUser>('/admin/users', { method: 'POST', body: { username, email } }),
+  updateUser: (id: string, changes: { username?: string; disabled?: boolean }) =>
+    request<AdminUser>(`/admin/users/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: changes,
+    }),
   deleteUser: (id: string) =>
     request<void>(`/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   resetLink: (id: string) =>

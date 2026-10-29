@@ -18,9 +18,7 @@ export function UserProgress() {
         <Link to="/admin/users" className="text-primary text-sm underline underline-offset-4">
           ← Users
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold">
-          Progress{user ? ` · ${user.displayName}` : ''}
-        </h1>
+        <h1 className="mt-2 text-2xl font-semibold">Progress{user ? ` · ${user.username}` : ''}</h1>
       </div>
       {progress.status === 'loading' && <Loading />}
       {progress.status === 'error' && (

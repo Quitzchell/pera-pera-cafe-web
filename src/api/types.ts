@@ -43,14 +43,19 @@ export type RuleGroup =
   | 'EXCEPTION_IKU'
   | 'EXCEPTION_ARU';
 
+/** Users sign in with their username, which is also the only name shown in the app. */
 export interface User {
   id: string;
-  email: string;
-  displayName: string;
+  username: string;
   role: Role;
   status: UserStatus;
   createdAt: string;
   lastActiveAt: string | null;
+}
+
+/** Only the admin routes return a user's email. */
+export interface AdminUser extends User {
+  email: string;
 }
 
 export interface Settings {
@@ -175,7 +180,7 @@ export interface IssuedLink {
 }
 
 export interface CreatedUser extends IssuedLink {
-  user: User;
+  user: AdminUser;
 }
 
 export interface ApiErrorBody {

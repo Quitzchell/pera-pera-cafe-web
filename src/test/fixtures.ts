@@ -2,8 +2,7 @@ import type { AnswerResult, Progress, Round, Settings, User } from '@/api/types'
 
 export const learner: User = {
   id: 'u1',
-  email: 'learner@example.com',
-  displayName: 'Aiko',
+  username: 'aiko',
   role: 'LEARNER',
   status: 'ACTIVE',
   createdAt: '2026-10-01T00:00:00.000Z',
