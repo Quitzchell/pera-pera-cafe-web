@@ -6,6 +6,11 @@ services:
     container_name: pera-pera-cafe-app
     ports:
       - '5173:5173'
+    environment:
+      # The API runs in its own compose project and publishes port 3000 on the host.
+      API_PROXY_TARGET: http://host.docker.internal:3000
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     volumes:
       - .:/app
       - /app/node_modules
