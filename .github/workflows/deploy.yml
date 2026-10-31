@@ -22,7 +22,8 @@ jobs:
           script: |
             set -euo pipefail
             cd "${{ secrets.VPS_APP_DIR }}"
+            git fetch origin master
             git checkout master
-            git pull
+            git reset --hard origin/master
             docker run --rm -v "$PWD:/app" -w /app node:22-alpine \
               sh -c "npm ci --no-audit --no-fund && npm run build"
