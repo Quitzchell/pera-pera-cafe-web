@@ -26,18 +26,24 @@ export function Progress() {
             Export
           </h2>
           <p className="text-muted-foreground text-sm">
-            Download your progress per form and rule group.
+            Download your progress per form and rule group, your last 30 mistakes, or both in one
+            JSON file.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
             <a href={progressApi.exportUrl('csv')} download="progress.csv">
-              <Download aria-hidden /> Export CSV
+              <Download aria-hidden /> Progress CSV
+            </a>
+          </Button>
+          <Button variant="outline" asChild>
+            <a href={progressApi.mistakesExportUrl} download="mistakes.csv">
+              <Download aria-hidden /> Mistakes CSV
             </a>
           </Button>
           <Button variant="outline" asChild>
             <a href={progressApi.exportUrl('json')} download="progress.json">
-              <Download aria-hidden /> Export JSON
+              <Download aria-hidden /> All as JSON
             </a>
           </Button>
         </div>

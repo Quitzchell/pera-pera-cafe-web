@@ -70,6 +70,7 @@ export type ExportFormat = 'csv' | 'json';
 export const progressApi = {
   get: () => request<Progress>('/progress'),
   exportUrl: (format: ExportFormat) => `${API_BASE}/progress/export?format=${format}`,
+  mistakesExportUrl: `${API_BASE}/progress/export/mistakes`,
 };
 
 export const adminApi = {
