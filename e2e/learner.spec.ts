@@ -28,7 +28,7 @@ test('accept invite, sign in, finish a round and see progress', async ({ page })
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
   await page.keyboard.press('Enter');
 
-  await expect(page.getByRole('heading', { name: 'past (た形)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'casual past (た形)' })).toBeVisible();
   await page.getByRole('textbox').fill('およんだ');
   await page.getByRole('button', { name: 'Check' }).click();
   await expect(page.getByText('Not quite')).toBeVisible();
