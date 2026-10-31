@@ -53,11 +53,6 @@ export interface User {
   lastActiveAt: string | null;
 }
 
-/** Only the admin routes return a user's email. */
-export interface AdminUser extends User {
-  email: string;
-}
-
 export interface Settings {
   enabledForms: ConjugationForm[];
   jlptLevels: JlptLevel[];
@@ -180,7 +175,7 @@ export interface IssuedLink {
 }
 
 export interface CreatedUser extends IssuedLink {
-  user: AdminUser;
+  user: User;
 }
 
 export interface ApiErrorBody {
