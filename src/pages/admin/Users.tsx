@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
 import { adminApi } from '@/api';
-import type { AdminUser, IssuedLink } from '@/api/types';
+import type { IssuedLink, User } from '@/api/types';
 import { useSignedIn } from '@/auth/useAuth';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { CopyLink } from '@/components/CopyLink';
@@ -22,7 +22,7 @@ interface LinkNotice extends IssuedLink {
   label: string;
 }
 
-const STATUS_TONE: Record<AdminUser['status'], string> = {
+const STATUS_TONE: Record<User['status'], string> = {
   ACTIVE: 'bg-success/15 text-success',
   INVITED: 'bg-accent text-accent-foreground',
   DISABLED: 'bg-muted text-muted-foreground',
@@ -35,16 +35,14 @@ function InviteDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onCreated: (user: AdminUser) => void;
+  onCreated: (user: User) => void;
 }) {
-  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [created, setCreated] = useState<{ user: AdminUser; link: IssuedLink } | null>(null);
+  const [created, setCreated] = useState<{ user: User; link: IssuedLink } | null>(null);
 
   function close() {
-    setEmail('');
     setUsername('');
     setError(null);
     setCreated(null);
@@ -56,7 +54,7 @@ function InviteDialog({
     setPending(true);
     setError(null);
     try {
-      const { user, link, expiresAt } = await adminApi.createUser(username.trim(), email.trim());
+      const { user, link, expiresAt } = await adminApi.createUser(username.trim());
       setCreated({ user, link: { link, expiresAt } });
       onCreated(user);
     } catch (caught) {
@@ -95,15 +93,6 @@ function InviteDialog({
               autoFocus
             />
           </Field>
-          <Field label="Email">
-            <Input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="off"
-              required
-            />
-          </Field>
           <ErrorMessage error={error} />
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={close}>
@@ -127,16 +116,15 @@ export function Users() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<unknown>(null);
-  const [toDelete, setToDelete] = useState<AdminUser | null>(null);
+  const [toDelete, setToDelete] = useState<User | null>(null);
 
   if (users.status === 'loading') return <Loading />;
   if (users.status === 'error') return <ErrorState error={users.error} onRetry={users.reload} />;
 
   const list = users.data;
-  const replace = (next: AdminUser) =>
-    users.setData(list.map((u) => (u.id === next.id ? next : u)));
+  const replace = (next: User) => users.setData(list.map((u) => (u.id === next.id ? next : u)));
 
-  async function run(user: AdminUser, action: () => Promise<void>) {
+  async function run(user: User, action: () => Promise<void>) {
     setBusyId(user.id);
     setActionError(null);
     try {
@@ -148,12 +136,12 @@ export function Users() {
     }
   }
 
-  const toggleDisabled = (user: AdminUser) =>
+  const toggleDisabled = (user: User) =>
     run(user, async () => {
       replace(await adminApi.updateUser(user.id, { disabled: user.status !== 'DISABLED' }));
     });
 
-  const issueResetLink = (user: AdminUser) =>
+  const issueResetLink = (user: User) =>
     run(user, async () => {
       const link = await adminApi.resetLink(user.id);
       const label =
@@ -163,7 +151,7 @@ export function Users() {
       setNotice({ ...link, userId: user.id, label });
     });
 
-  const confirmDelete = (user: AdminUser) =>
+  const confirmDelete = (user: User) =>
     run(user, async () => {
       await adminApi.deleteUser(user.id);
       users.setData(list.filter((u) => u.id !== user.id));
@@ -197,7 +185,6 @@ export function Users() {
                       <span className="text-muted-foreground ml-2 text-sm font-normal">Admin</span>
                     )}
                   </p>
-                  <p className="text-muted-foreground truncate text-sm">{user.email}</p>
                   <p className="text-muted-foreground text-sm">
                     Last active: {user.lastActiveAt ? formatDateTime(user.lastActiveAt) : 'never'}
                   </p>
@@ -294,7 +281,7 @@ export function Users() {
         onConfirm={() => toDelete && void confirmDelete(toDelete)}
         onCancel={() => setToDelete(null)}
       >
-        This permanently removes {toDelete?.email} and all of their progress.
+        This permanently removes {toDelete?.username} and all of their progress.
       </ConfirmDialog>
     </div>
   );
