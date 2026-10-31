@@ -1,6 +1,5 @@
 import { API_BASE, request } from '@/api/client';
 import type {
-  AdminUser,
   AnswerResult,
   CreatedUser,
   DrillMode,
@@ -74,11 +73,11 @@ export const progressApi = {
 };
 
 export const adminApi = {
-  users: () => request<AdminUser[]>('/admin/users'),
-  createUser: (username: string, email: string) =>
-    request<CreatedUser>('/admin/users', { method: 'POST', body: { username, email } }),
+  users: () => request<User[]>('/admin/users'),
+  createUser: (username: string) =>
+    request<CreatedUser>('/admin/users', { method: 'POST', body: { username } }),
   updateUser: (id: string, changes: { username?: string; disabled?: boolean }) =>
-    request<AdminUser>(`/admin/users/${encodeURIComponent(id)}`, {
+    request<User>(`/admin/users/${encodeURIComponent(id)}`, {
       method: 'PATCH',
       body: changes,
     }),

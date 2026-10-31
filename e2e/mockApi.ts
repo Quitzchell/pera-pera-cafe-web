@@ -1,8 +1,8 @@
 import type { Page, Route } from '@playwright/test';
 
-import type { AdminUser, AnswerResult, Round, Settings, User } from '../src/api/types';
+import type { AnswerResult, Round, Settings, User } from '../src/api/types';
 
-interface Account extends AdminUser {
+interface Account extends User {
   password: string | null;
 }
 
@@ -35,7 +35,6 @@ function account(id: string, role: User['role'], status: User['status'], passwor
   return {
     id,
     username: id,
-    email: `${id}@example.com`,
     role,
     status,
     createdAt: '2026-10-01T00:00:00.000Z',
@@ -56,14 +55,9 @@ export async function mockApi(page: Page) {
   const rounds = new Map<string, Round>();
   const answers = new Map<string, { answer: string; result: AnswerResult }>();
 
-  const adminUser = (account: Account): AdminUser => {
+  const publicUser = (account: Account): User => {
     const { password, ...user } = account;
     void password;
-    return user;
-  };
-  const publicUser = (account: Account): User => {
-    const { email, ...user } = adminUser(account);
-    void email;
     return user;
   };
   const reply = (route: Route, status: number, body?: unknown) =>
@@ -209,22 +203,21 @@ export async function mockApi(page: Page) {
         });
       }
 
-      if (key === 'GET /admin/users') return reply(route, 200, accounts.map(adminUser));
+      if (key === 'GET /admin/users') return reply(route, 200, accounts.map(publicUser));
       if (key === 'POST /admin/users') {
         const username = body?.username?.toLowerCase() ?? '';
-        if (accounts.some((a) => a.username === username || a.email === body?.email)) {
-          return fail(route, 409, 'A user with this username or email already exists');
+        if (accounts.some((a) => a.username === username)) {
+          return fail(route, 409, 'A user with this username already exists');
         }
         const created: Account = {
           ...account(`user${accounts.length}`, 'LEARNER', 'INVITED', null),
           username,
-          email: body?.email ?? '',
         };
         accounts.push(created);
         const token = `token-${created.id}`;
         invites.set(token, created.id);
         return reply(route, 201, {
-          user: adminUser(created),
+          user: publicUser(created),
           link: `${url.origin}/invite/${token}`,
           expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
         });
