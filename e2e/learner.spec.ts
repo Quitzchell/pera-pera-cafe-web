@@ -48,9 +48,13 @@ test('accept invite, sign in, finish a round and see progress', async ({ page })
   await page.getByRole('link', { name: 'Progress' }).first().click();
   await expect(page.getByRole('heading', { name: 'Progress' })).toBeVisible();
   await expect(page.getByText('te-form (て形)').filter({ visible: true }).first()).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Export CSV' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Progress CSV' })).toHaveAttribute(
     'href',
     '/api/progress/export?format=csv',
+  );
+  await expect(page.getByRole('link', { name: 'Mistakes CSV' })).toHaveAttribute(
+    'href',
+    '/api/progress/export/mistakes',
   );
 });
 
