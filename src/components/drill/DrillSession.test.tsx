@@ -235,7 +235,7 @@ describe('DrillSession', () => {
     expect(answer).toHaveBeenCalledOnce();
 
     await user.keyboard('{Enter}');
-    expect(screen.getByRole('heading', { name: 'past (た形)' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'casual past (た形)' })).toBeInTheDocument();
 
     await user.keyboard('4');
     expect(answer).toHaveBeenCalledOnce();
