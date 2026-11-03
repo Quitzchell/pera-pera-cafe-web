@@ -104,7 +104,7 @@ export function Home() {
                 {pending === 'STANDARD' ? 'Starting…' : 'Start practice'}
               </span>
               <span className="opacity-85">
-                {settings.roundSize} questions
+                {plural(settings.roundSize, 'question', 'questions')}
                 {due !== undefined &&
                   due > 0 &&
                   ` · ${plural(due, 'rule group', 'rule groups')} due`}
