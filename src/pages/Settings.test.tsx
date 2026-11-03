@@ -41,7 +41,7 @@ describe('Settings', () => {
     await user.clear(roundSize);
     await user.type(roundSize, '60');
     await user.tab();
-    expect(roundSize).toHaveAccessibleDescription(/between 5 and 50/i);
+    expect(roundSize).toHaveAccessibleDescription(/between 1 and 50/i);
     expect(updateSettings).toHaveBeenCalledTimes(1);
 
     await user.clear(roundSize);
