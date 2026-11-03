@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { FORM_EXAMPLES, FORM_LABELS, FORMS_BY_LEVEL } from '@/lib/labels';
 import { cn } from '@/lib/utils';
 
-const MIN_ROUND = 5;
+const MIN_ROUND = 1;
 const MAX_ROUND = 50;
 
 const sortForms = (forms: ConjugationForm[]) =>
