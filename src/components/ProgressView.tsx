@@ -128,10 +128,10 @@ export function ProgressView({ progress }: { progress: Progress }) {
         <Stat
           label="Streak"
           value={
-            <>
+            <span className="flex flex-wrap items-center gap-1">
               {streak} {streak === 1 ? 'day' : 'days'}
               {streak > 0 && <StreakSkips left={streakSkipsLeft} />}
-            </>
+            </span>
           }
         />
       </dl>
