@@ -190,6 +190,7 @@ export async function mockApi(page: Page) {
             dueToday: 1,
           },
           streak: rounds.size ? 1 : 0,
+          streakSkipsLeft: 2,
           ruleGroups: [...answers.entries()].map(([itemId, a]) => ({
             form: itemId === 'item-1' ? 'TE' : 'PAST',
             ruleGroup: a.result.ruleGroup,
