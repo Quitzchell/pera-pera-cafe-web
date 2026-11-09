@@ -1,15 +1,18 @@
+import type { ReactNode } from 'react';
+
 import type { Progress, RuleGroupProgress } from '@/api/types';
 import { BoxDistribution } from '@/components/BoxDistribution';
+import { StreakSkips } from '@/components/StreakSkips';
 import { Card } from '@/components/ui/card';
 import { FORM_LABELS, formatDate, formatPercent, RULE_GROUP_LABELS } from '@/lib/labels';
 import { cn } from '@/lib/utils';
 
 const MAX_BOX = 5;
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({ label, value }: { label: ReactNode; value: string | number }) {
   return (
     <div className="bg-card rounded-xl border p-4">
-      <dt className="text-muted-foreground text-sm">{label}</dt>
+      <dt className="text-muted-foreground flex items-center gap-2 text-sm">{label}</dt>
       <dd className="mt-1 text-2xl font-semibold tabular-nums">{value}</dd>
     </div>
   );
@@ -114,7 +117,7 @@ function RuleGroupList({ rows }: { rows: RuleGroupProgress[] }) {
 }
 
 export function ProgressView({ progress }: { progress: Progress }) {
-  const { totals, streak, ruleGroups } = progress;
+  const { totals, streak, streakSkipsLeft, ruleGroups } = progress;
 
   return (
     <div className="grid gap-6">
@@ -122,7 +125,15 @@ export function ProgressView({ progress }: { progress: Progress }) {
         <Stat label="Accuracy" value={formatPercent(totals.accuracy)} />
         <Stat label="Attempts" value={totals.attempts} />
         <Stat label="Rounds finished" value={totals.roundsFinished} />
-        <Stat label="Streak" value={`${streak} ${streak === 1 ? 'day' : 'days'}`} />
+        <Stat
+          label={
+            <>
+              Streak
+              {streak > 0 && <StreakSkips left={streakSkipsLeft} />}
+            </>
+          }
+          value={`${streak} ${streak === 1 ? 'day' : 'days'}`}
+        />
       </dl>
 
       {ruleGroups.length === 0 ? (

@@ -137,6 +137,7 @@ export interface Progress {
     dueToday: number;
   };
   streak: number;
+  streakSkipsLeft: number;
   ruleGroups: RuleGroupProgress[];
 }
 

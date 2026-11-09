@@ -73,5 +73,6 @@ export const correctTe: AnswerResult = {
 export const emptyProgress: Progress = {
   totals: { attempts: 0, correct: 0, accuracy: 0, roundsFinished: 0, dueToday: 0 },
   streak: 0,
+  streakSkipsLeft: 2,
   ruleGroups: [],
 };

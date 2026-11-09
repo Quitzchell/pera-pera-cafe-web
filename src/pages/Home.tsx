@@ -6,6 +6,7 @@ import type { DrillMode, Progress } from '@/api/types';
 import { useSignedIn } from '@/auth/useAuth';
 import { ErrorMessage, ErrorState } from '@/components/ErrorState';
 import { Loading } from '@/components/Loading';
+import { StreakSkips } from '@/components/StreakSkips';
 import { Card } from '@/components/ui/card';
 import { useApiQuery } from '@/hooks/useApiQuery';
 import { useStartRound } from '@/hooks/useStartRound';
@@ -32,7 +33,10 @@ function Status({ progress }: { progress: Progress }) {
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground text-sm">Streak</dt>
+          <dt className="text-muted-foreground flex items-center gap-2 text-sm">
+            Streak
+            {progress.streak > 0 && <StreakSkips left={progress.streakSkipsLeft} />}
+          </dt>
           <dd className="flex items-center gap-1 text-xl font-semibold tabular-nums">
             {progress.streak > 0 && <Flame aria-hidden className="text-primary size-5" />}
             {plural(progress.streak, 'day', 'days')}
