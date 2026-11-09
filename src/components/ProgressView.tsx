@@ -9,10 +9,10 @@ import { cn } from '@/lib/utils';
 
 const MAX_BOX = 5;
 
-function Stat({ label, value }: { label: string; value: ReactNode }) {
+function Stat({ label, value }: { label: ReactNode; value: string | number }) {
   return (
     <div className="bg-card rounded-xl border p-4">
-      <dt className="text-muted-foreground text-sm">{label}</dt>
+      <dt className="text-muted-foreground flex items-center gap-2 text-sm">{label}</dt>
       <dd className="mt-1 text-2xl font-semibold tabular-nums">{value}</dd>
     </div>
   );
@@ -126,13 +126,13 @@ export function ProgressView({ progress }: { progress: Progress }) {
         <Stat label="Attempts" value={totals.attempts} />
         <Stat label="Rounds finished" value={totals.roundsFinished} />
         <Stat
-          label="Streak"
-          value={
-            <span className="flex flex-wrap items-center gap-1">
-              {streak} {streak === 1 ? 'day' : 'days'}
+          label={
+            <>
+              Streak
               {streak > 0 && <StreakSkips left={streakSkipsLeft} />}
-            </span>
+            </>
           }
+          value={`${streak} ${streak === 1 ? 'day' : 'days'}`}
         />
       </dl>
 
