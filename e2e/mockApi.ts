@@ -51,6 +51,7 @@ export async function mockApi(page: Page) {
     account('newbie', 'LEARNER', 'INVITED', null),
   ];
   const invites = new Map([['invite-token', 'newbie']]);
+  const resets = new Map([['reset-token', 'learner']]);
   let signedIn: Account | null = null;
   const rounds = new Map<string, Round>();
   const answers = new Map<string, { answer: string; result: AnswerResult }>();
@@ -88,6 +89,20 @@ export async function mockApi(page: Page) {
         if (!match) return fail(route, 401, 'Invalid username or password');
         signedIn = match;
         return reply(route, 200, { user: publicUser(match), csrfToken: 'csrf' });
+      }
+      if (key === 'POST /auth/check-invite' || key === 'POST /auth/check-reset') {
+        const links = key === 'POST /auth/check-invite' ? invites : resets;
+        if (!links.has(body?.token ?? '')) {
+          return fail(route, 400, 'This link is invalid or has expired');
+        }
+        return reply(route, 204);
+      }
+      if (key === 'POST /auth/reset-password') {
+        const user = accounts.find((a) => a.id === resets.get(body?.token ?? ''));
+        if (!user) return fail(route, 400, 'This link is invalid or has expired');
+        user.password = body?.password ?? null;
+        resets.delete(body?.token ?? '');
+        return reply(route, 204);
       }
       if (key === 'POST /auth/accept-invite') {
         const id = invites.get(body?.token ?? '');
