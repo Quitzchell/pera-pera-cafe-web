@@ -25,6 +25,10 @@ export const authApi = {
     }),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
   me: () => request<User>('/auth/me'),
+  checkInvite: (token: string) =>
+    request<void>('/auth/check-invite', { method: 'POST', body: { token }, isPublic: true }),
+  checkReset: (token: string) =>
+    request<void>('/auth/check-reset', { method: 'POST', body: { token }, isPublic: true }),
   acceptInvite: (token: string, password: string) =>
     request<void>('/auth/accept-invite', {
       method: 'POST',
