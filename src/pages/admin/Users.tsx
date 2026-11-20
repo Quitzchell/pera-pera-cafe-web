@@ -23,9 +23,9 @@ interface LinkNotice extends IssuedLink {
 }
 
 const STATUS_TONE: Record<User['status'], string> = {
-  ACTIVE: 'bg-success/15 text-success',
-  INVITED: 'bg-accent text-accent-foreground',
-  DISABLED: 'bg-muted text-muted-foreground',
+  ACTIVE: 'bg-success',
+  INVITED: 'bg-primary',
+  DISABLED: 'bg-muted-foreground',
 };
 
 function InviteDialog({
@@ -94,7 +94,7 @@ function InviteDialog({
             />
           </Field>
           <ErrorMessage error={error} />
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse items-end gap-2 sm:flex-row sm:justify-end sm:gap-6">
             <Button type="button" variant="outline" onClick={close}>
               Cancel
             </Button>
@@ -159,9 +159,9 @@ export function Users() {
     });
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Users</h1>
+        <h1 className="text-[26px] font-semibold">Users</h1>
         <Button onClick={() => setInviting(true)}>
           <UserPlus aria-hidden /> Invite learner
         </Button>
@@ -169,14 +169,14 @@ export function Users() {
 
       <ErrorMessage error={actionError} />
 
-      <ul className="grid gap-3">
+      <ul className="grid">
         {list.map((user) => {
           const isMe = user.id === me.id;
           const busy = busyId === user.id;
           const open = expanded === user.id;
           const actionsId = `user-actions-${user.id}`;
           return (
-            <li key={user.id} className="bg-card grid gap-3 rounded-xl border p-4">
+            <li key={user.id} className="grid gap-2 border-b py-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-semibold">
@@ -189,18 +189,17 @@ export function Users() {
                     Last active: {user.lastActiveAt ? formatDateTime(user.lastActiveAt) : 'never'}
                   </p>
                 </div>
-                <span
-                  className={cn('rounded-full px-2.5 py-0.5 text-sm', STATUS_TONE[user.status])}
-                >
+                <span className="flex items-center gap-1.5 text-sm">
+                  <span aria-hidden className={cn('size-2', STATUS_TONE[user.status])} />
                   {STATUS_LABELS[user.status]}
                 </span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" asChild>
+              <div className="flex flex-wrap gap-x-5">
+                <Button variant="link" size="sm" asChild>
                   <Link to={`/admin/users/${user.id}/progress`}>Progress</Link>
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="link"
                   size="sm"
                   aria-expanded={open}
                   aria-controls={actionsId}
@@ -213,10 +212,10 @@ export function Users() {
                   />
                 </Button>
               </div>
-              <div id={actionsId} hidden={!open} className="flex flex-wrap gap-2 border-t pt-3">
+              <div id={actionsId} hidden={!open} className="flex flex-wrap gap-x-5">
                 {user.status !== 'DISABLED' && (
                   <Button
-                    variant="outline"
+                    variant="link"
                     size="sm"
                     disabled={busy}
                     onClick={() => void issueResetLink(user)}
@@ -231,7 +230,7 @@ export function Users() {
                 ) : (
                   <>
                     <Button
-                      variant="outline"
+                      variant="link"
                       size="sm"
                       disabled={busy}
                       onClick={() => void toggleDisabled(user)}
@@ -239,7 +238,7 @@ export function Users() {
                       {user.status === 'DISABLED' ? 'Enable' : 'Disable'}
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="link"
                       size="sm"
                       className="text-destructive"
                       disabled={busy}

@@ -42,7 +42,7 @@ export function SignIn() {
     <PublicLayout title="Sign in">
       <form action={submit} className="grid gap-4">
         {notice && (
-          <p role="status" className="bg-accent text-accent-foreground rounded-lg p-3 text-sm">
+          <p role="status" className="border-primary border-l-2 py-1 pl-3 text-sm">
             {notice}
           </p>
         )}

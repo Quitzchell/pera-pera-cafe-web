@@ -13,12 +13,14 @@ export function UserProgress() {
   const user = users.data?.find((u) => u.id === userId);
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <div>
         <Link to="/admin/users" className="text-primary text-sm underline underline-offset-4">
           ← Users
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold">Progress{user ? ` · ${user.username}` : ''}</h1>
+        <h1 className="mt-2 text-[26px] font-semibold">
+          Progress{user ? ` · ${user.username}` : ''}
+        </h1>
       </div>
       {progress.status === 'loading' && <Loading />}
       {progress.status === 'error' && (

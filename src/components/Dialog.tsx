@@ -26,7 +26,7 @@ export function Dialog({ open, title, onClose, children }: DialogProps) {
         event.preventDefault();
         onClose();
       }}
-      className="bg-card text-card-foreground m-auto w-[min(28rem,calc(100%-2rem))] rounded-xl border p-6 backdrop:bg-black/50"
+      className="bg-card text-card-foreground m-auto w-[min(28rem,calc(100%-2rem))] border p-4 backdrop:bg-black/50 sm:p-6"
     >
       <h2 id={titleId} className="mb-4 text-lg font-semibold">
         {title}

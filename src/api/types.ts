@@ -56,7 +56,6 @@ export interface User {
 export interface Settings {
   enabledForms: ConjugationForm[];
   jlptLevels: JlptLevel[];
-  roundSize: number;
   romajiInput: boolean;
   showFurigana: boolean;
   timeZone: string;

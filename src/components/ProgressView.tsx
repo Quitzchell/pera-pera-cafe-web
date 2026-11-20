@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import type { Progress, RuleGroupProgress } from '@/api/types';
 import { BoxDistribution } from '@/components/BoxDistribution';
 import { StreakSkips } from '@/components/StreakSkips';
-import { Card } from '@/components/ui/card';
 import { FORM_LABELS, formatDate, formatPercent, RULE_GROUP_LABELS } from '@/lib/labels';
 import { cn } from '@/lib/utils';
 
@@ -11,7 +10,7 @@ const MAX_BOX = 5;
 
 function Stat({ label, value }: { label: ReactNode; value: string | number }) {
   return (
-    <div className="bg-card rounded-xl border p-4">
+    <div className="py-3 pr-3">
       <dt className="text-muted-foreground flex items-center gap-2 text-sm">{label}</dt>
       <dd className="mt-1 text-2xl font-semibold tabular-nums">{value}</dd>
     </div>
@@ -34,7 +33,7 @@ function BoxMeter({ box }: { box: number }) {
       {Array.from({ length: MAX_BOX }, (_, index) => (
         <span
           key={index}
-          className={cn('h-2 w-3 rounded-sm', index < box ? 'bg-primary' : 'bg-muted')}
+          className={cn('size-2', index < box ? 'bg-primary' : 'bg-muted-foreground/30')}
         />
       ))}
     </span>
@@ -55,12 +54,9 @@ function Accuracy({ row }: { row: RuleGroupProgress }) {
 function RuleGroupList({ rows }: { rows: RuleGroupProgress[] }) {
   return (
     <>
-      <ul className="grid gap-2 sm:hidden">
+      <ul className="grid sm:hidden">
         {rows.map((row) => (
-          <li
-            key={`${row.form}-${row.ruleGroup}`}
-            className="bg-card grid gap-1 rounded-xl border p-3"
-          >
+          <li key={`${row.form}-${row.ruleGroup}`} className="grid gap-1 border-b py-3 first:pt-0">
             <div className="flex items-baseline justify-between gap-3">
               <span className="font-medium">{FORM_LABELS[row.form]}</span>
               <Accuracy row={row} />
@@ -73,45 +69,45 @@ function RuleGroupList({ rows }: { rows: RuleGroupProgress[] }) {
         ))}
       </ul>
 
-      <Card className="hidden p-0 sm:block sm:p-0">
+      <div className="hidden sm:block">
         <table className="w-full text-left text-sm">
           <caption className="sr-only">Accuracy per form and rule group, weakest first</caption>
           <thead className="text-muted-foreground border-b">
             <tr>
-              <th scope="col" className="p-3 font-medium">
+              <th scope="col" className="px-0 py-3 pr-3 font-medium">
                 Form
               </th>
-              <th scope="col" className="p-3 font-medium">
+              <th scope="col" className="px-0 py-3 pr-3 font-medium">
                 Rule group
               </th>
-              <th scope="col" className="p-3 text-right font-medium">
+              <th scope="col" className="py-3 pr-3 text-right font-medium">
                 Accuracy
               </th>
-              <th scope="col" className="p-3 font-medium">
+              <th scope="col" className="px-0 py-3 pr-3 font-medium">
                 Box
               </th>
-              <th scope="col" className="p-3 font-medium">
+              <th scope="col" className="px-0 py-3 pr-3 font-medium">
                 Last practised
               </th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={`${row.form}-${row.ruleGroup}`} className="border-b last:border-0">
-                <td className="p-3">{FORM_LABELS[row.form]}</td>
-                <td className="p-3">{RULE_GROUP_LABELS[row.ruleGroup]}</td>
-                <td className="p-3 text-right">
+              <tr key={`${row.form}-${row.ruleGroup}`} className="border-b">
+                <td className="px-0 py-3 pr-3">{FORM_LABELS[row.form]}</td>
+                <td className="px-0 py-3 pr-3">{RULE_GROUP_LABELS[row.ruleGroup]}</td>
+                <td className="px-0 py-3 pr-3 text-right">
                   <Accuracy row={row} />
                 </td>
-                <td className="p-3">
+                <td className="px-0 py-3 pr-3">
                   <BoxMeter box={row.box} />
                 </td>
-                <td className="text-muted-foreground p-3">{formatDate(row.lastPracticedAt)}</td>
+                <td className="text-muted-foreground py-3">{formatDate(row.lastPracticedAt)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </Card>
+      </div>
     </>
   );
 }
@@ -120,8 +116,8 @@ export function ProgressView({ progress }: { progress: Progress }) {
   const { totals, streak, streakSkipsLeft, ruleGroups } = progress;
 
   return (
-    <div className="grid gap-6">
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid gap-5">
+      <dl className="grid grid-cols-2 sm:grid-cols-4">
         <Stat label="Accuracy" value={formatPercent(totals.accuracy)} />
         <Stat label="Attempts" value={totals.attempts} />
         <Stat label="Rounds finished" value={totals.roundsFinished} />
@@ -137,20 +133,20 @@ export function ProgressView({ progress }: { progress: Progress }) {
       </dl>
 
       {ruleGroups.length === 0 ? (
-        <Card>
-          <p className="text-muted-foreground">No practice yet. Finish a round to see progress.</p>
-        </Card>
+        <p className="text-muted-foreground pt-7">
+          No practice yet. Finish a round to see progress.
+        </p>
       ) : (
         <>
-          <Card aria-labelledby="boxes-heading">
-            <h2 id="boxes-heading" className="mb-3 text-lg font-semibold">
+          <section aria-labelledby="boxes-heading" className="grid gap-2.5 pt-7">
+            <h2 id="boxes-heading" className="section-label">
               Rule groups per box
             </h2>
             <BoxDistribution ruleGroups={ruleGroups} />
-          </Card>
+          </section>
 
-          <section aria-labelledby="rule-groups-heading" className="grid gap-3">
-            <h2 id="rule-groups-heading" className="text-lg font-semibold">
+          <section aria-labelledby="rule-groups-heading" className="grid gap-2.5 pt-7">
+            <h2 id="rule-groups-heading" className="section-label">
               Weakest first
             </h2>
             <RuleGroupList rows={ruleGroups} />

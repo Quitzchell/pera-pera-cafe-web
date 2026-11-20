@@ -11,11 +11,13 @@ interface ExamChoicesProps {
 }
 
 export function ExamChoices({ choices, disabled, picked, expectedKana, onPick }: ExamChoicesProps) {
+  const answered = expectedKana !== undefined;
+
   return (
-    <div role="group" aria-label="Choices" className="grid gap-3 sm:grid-cols-2">
+    <div role="group" aria-label="Choices" className="grid border-t">
       {choices.map((choice, index) => {
-        const isExpected = expectedKana !== undefined && choice === expectedKana;
-        const isWrongPick = expectedKana !== undefined && choice === picked && !isExpected;
+        const isExpected = answered && choice === expectedKana;
+        const isWrongPick = answered && choice === picked && !isExpected;
         return (
           <button
             key={choice}
@@ -24,19 +26,20 @@ export function ExamChoices({ choices, disabled, picked, expectedKana, onPick }:
             onClick={() => onPick(choice)}
             aria-keyshortcuts={String(index + 1)}
             className={cn(
-              'bg-card hover:bg-accent focus-visible:ring-ring/50 disabled:hover:bg-card flex min-h-16 items-center gap-3 rounded-xl border px-4 text-left text-2xl transition-colors outline-none focus-visible:ring-[3px] disabled:cursor-default',
-              isExpected && 'border-success ring-success/40 ring-2',
-              isWrongPick && 'border-destructive ring-destructive/40 ring-2',
+              'hover:bg-accent focus-visible:ring-ring/50 flex min-h-14 items-center gap-3.5 border-b py-2 text-left text-[22px] transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-inset disabled:cursor-default disabled:hover:bg-transparent',
+              isExpected && 'text-success',
+              isWrongPick && 'text-destructive',
+              answered && !isExpected && !isWrongPick && 'opacity-45',
             )}
           >
-            <kbd className="text-muted-foreground grid size-7 shrink-0 place-items-center rounded-md border text-sm">
+            <kbd className="text-muted-foreground w-3.5 shrink-0 font-sans text-[13px]">
               {index + 1}
             </kbd>
-            <span lang="ja" className="flex-1">
+            <span lang="ja" className={cn('flex-1', isWrongPick && 'line-through')}>
               {choice}
             </span>
-            {isExpected && <Check aria-label="correct answer" className="text-success" />}
-            {isWrongPick && <X aria-label="your answer" className="text-destructive" />}
+            {isExpected && <Check aria-label="correct answer" className="size-5" />}
+            {isWrongPick && <X aria-label="your answer" className="size-5" />}
           </button>
         );
       })}

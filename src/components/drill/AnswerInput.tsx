@@ -56,7 +56,7 @@ export function AnswerInput({
 
   // The same input stays mounted and focused between items, so the mobile keyboard stays open.
   useEffect(() => {
-    inputRef.current?.focus();
+    inputRef.current?.focus({ preventScroll: true });
   }, [itemId]);
 
   function submit() {
@@ -83,79 +83,82 @@ export function AnswerInput({
 
   return (
     <form
-      className="grid gap-1.5"
+      className="grid grid-cols-[minmax(0,1fr)] gap-1.5"
       onSubmit={(event) => {
         event.preventDefault();
         if (!composing.current) submit();
       }}
     >
-      <div className="flex gap-2">
-        <div className="relative min-w-0 flex-1">
-          <input
-            ref={inputRef}
-            id="answer"
-            lang="ja"
-            type="text"
-            inputMode="text"
-            enterKeyHint={locked ? 'next' : 'done'}
-            autoFocus
-            autoCapitalize="off"
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            maxLength={100}
-            readOnly={locked}
-            aria-invalid={hint ? true : undefined}
-            // The visible question labels the input: "泳ぐ … te-form (て形)".
-            aria-labelledby="prompt-verb prompt-form"
-            aria-describedby={
-              [hint && 'answer-hint', romaji && 'answer-romaji'].filter(Boolean).join(' ') ||
-              undefined
-            }
-            value={value}
-            onChange={(event) => {
-              const next = event.target.value;
-              const isComposing = (event.nativeEvent as InputEvent).isComposing;
-              setValue(
-                romaji && !isComposing ? toKana(next.toLowerCase(), { IMEMode: true }) : next,
-              );
-              setHint(null);
-            }}
-            onCompositionStart={() => {
-              composing.current = true;
-            }}
-            onCompositionEnd={() => {
-              composing.current = false;
-            }}
-            onKeyDown={handleKeyDown}
-            onAnimationEnd={() => setShaking(false)}
-            className={cn(
-              'bg-card border-input focus-visible:border-ring focus-visible:ring-ring/50 h-16 w-full min-w-0 rounded-xl border px-4 text-2xl transition-colors outline-none read-only:cursor-default focus-visible:ring-[3px]',
-              romaji && 'pr-20',
-              shaking && 'motion-safe:animate-shake',
-              hint &&
-                'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30',
-              status === 'correct' &&
-                'border-success bg-success/10 focus-visible:border-success focus-visible:ring-success/30',
-              status === 'wrong' &&
-                'border-destructive bg-destructive/10 focus-visible:border-destructive focus-visible:ring-destructive/30',
-            )}
-          />
-          {romaji && (
-            <span
-              id="answer-romaji"
-              className="bg-muted text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-2 py-0.5 text-xs"
-            >
-              <span aria-hidden>a→あ</span>
-              <span className="sr-only">Romaji is converted to kana</span>
-            </span>
+      <div
+        onAnimationEnd={() => setShaking(false)}
+        className={cn(
+          'flex items-center gap-3 border-b-2 pb-1.5',
+          hint || status === 'wrong' ? 'border-destructive' : 'border-primary',
+          status === 'correct' && 'border-success',
+          shaking && 'motion-safe:animate-shake',
+        )}
+      >
+        <input
+          ref={inputRef}
+          id="answer"
+          lang="ja"
+          type="text"
+          inputMode="text"
+          enterKeyHint={locked ? 'next' : 'done'}
+          autoFocus
+          autoCapitalize="off"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          maxLength={100}
+          readOnly={locked}
+          aria-invalid={hint ? true : undefined}
+          // The visible question labels the input: "泳ぐ … te-form (て形)".
+          aria-labelledby="prompt-verb prompt-form"
+          aria-describedby={
+            [hint && 'answer-hint', romaji && !status && 'answer-romaji']
+              .filter(Boolean)
+              .join(' ') || undefined
+          }
+          value={value}
+          onChange={(event) => {
+            const next = event.target.value;
+            const isComposing = (event.nativeEvent as InputEvent).isComposing;
+            setValue(romaji && !isComposing ? toKana(next.toLowerCase(), { IMEMode: true }) : next);
+            setHint(null);
+          }}
+          onCompositionStart={() => {
+            composing.current = true;
+          }}
+          onCompositionEnd={() => {
+            composing.current = false;
+          }}
+          onKeyDown={handleKeyDown}
+          className={cn(
+            'h-11 min-w-0 flex-1 bg-transparent text-2xl outline-none read-only:cursor-default',
+            status === 'correct' && 'text-success',
+            status === 'wrong' && 'text-destructive line-through',
           )}
-        </div>
+        />
+        {status === 'correct' && (
+          <span aria-hidden className="text-success text-2xl leading-none">
+            ✓
+          </span>
+        )}
+        {romaji && !status && (
+          <span
+            id="answer-romaji"
+            className="bg-muted text-muted-foreground pointer-events-none px-2 py-0.5 text-xs"
+          >
+            <span aria-hidden>a→あ</span>
+            <span className="sr-only">Romaji is converted to kana</span>
+          </span>
+        )}
         {continueLabel ? (
           <Button
             type="button"
-            size="lg"
-            className="h-16 min-w-28"
+            variant="ghost"
+            className="min-w-14 justify-end no-underline"
             disabled={continueDisabled}
             onClick={onContinue}
             onMouseDown={(event) => event.preventDefault()}
@@ -165,8 +168,8 @@ export function AnswerInput({
         ) : (
           <Button
             type="submit"
-            size="lg"
-            className="h-16 min-w-28"
+            variant="ghost"
+            className="min-w-14 justify-end no-underline"
             disabled={locked || !value.trim()}
             // Keep focus in the input so the mobile keyboard stays open.
             onMouseDown={(event) => event.preventDefault()}

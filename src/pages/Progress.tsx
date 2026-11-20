@@ -1,28 +1,25 @@
-import { Download } from 'lucide-react';
-
 import { progressApi } from '@/api';
 import { ErrorState } from '@/components/ErrorState';
 import { Loading } from '@/components/Loading';
 import { ProgressView } from '@/components/ProgressView';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { useApiQuery } from '@/hooks/useApiQuery';
 
 export function Progress() {
   const progress = useApiQuery(progressApi.get, 'progress');
 
   return (
-    <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Progress</h1>
+    <div className="grid gap-5">
+      <h1 className="text-[26px] font-semibold">Progress</h1>
       {progress.status === 'loading' && <Loading />}
       {progress.status === 'error' && (
         <ErrorState error={progress.error} onRetry={progress.reload} />
       )}
       {progress.status === 'success' && <ProgressView progress={progress.data} />}
 
-      <Card aria-labelledby="export-heading" className="grid gap-3">
+      <section aria-labelledby="export-heading" className="grid gap-2.5 pt-7">
         <div>
-          <h2 id="export-heading" className="text-lg font-semibold">
+          <h2 id="export-heading" className="section-label">
             Export
           </h2>
           <p className="text-muted-foreground text-sm">
@@ -30,24 +27,24 @@ export function Progress() {
             JSON file.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" asChild>
+        <div className="flex flex-wrap gap-x-6">
+          <Button variant="link" asChild>
             <a href={progressApi.exportUrl('csv')} download="progress.csv">
-              <Download aria-hidden /> Progress CSV
+              Progress CSV
             </a>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="link" asChild>
             <a href={progressApi.mistakesExportUrl} download="mistakes.csv">
-              <Download aria-hidden /> Mistakes CSV
+              Mistakes CSV
             </a>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="link" asChild>
             <a href={progressApi.exportUrl('json')} download="progress.json">
-              <Download aria-hidden /> All as JSON
+              All as JSON
             </a>
           </Button>
         </div>
-      </Card>
+      </section>
     </div>
   );
 }

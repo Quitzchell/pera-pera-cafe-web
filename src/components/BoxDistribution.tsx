@@ -22,7 +22,7 @@ export function BoxDistribution({ ruleGroups }: { ruleGroups: RuleGroupProgress[
               </span>
               <div className="border-border flex h-20 items-end border-b" aria-hidden>
                 <div
-                  className="bg-primary mx-auto w-full max-w-10 rounded-t-[4px]"
+                  className="bg-primary mx-auto w-full max-w-10"
                   style={{ height: count ? `${(count / max) * 100}%` : 0 }}
                 />
               </div>
