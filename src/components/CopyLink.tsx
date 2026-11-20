@@ -19,9 +19,9 @@ export function CopyLink({ link, expiresAt, label }: IssuedLink & { label: strin
   }
 
   return (
-    <div className="bg-accent text-accent-foreground grid gap-2 rounded-lg p-3">
+    <div className="grid gap-2 border-y py-3">
       <p className="text-sm font-medium">{label}</p>
-      <div className="flex gap-2">
+      <div className="flex items-end gap-4">
         <Input
           readOnly
           value={link}

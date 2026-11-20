@@ -69,7 +69,7 @@
   --border: oklch(0.9 0.005 90);
   --input: oklch(0.86 0.005 90);
   --ring: oklch(0.55 0.12 200);
-  --radius: 0.75rem;
+  --radius: 0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -93,6 +93,12 @@
     --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 18%);
     --ring: oklch(0.72 0.1 200);
+  }
+}
+
+@layer components {
+  .section-label {
+    @apply text-muted-foreground text-[11px] font-semibold tracking-widest uppercase;
   }
 }
 

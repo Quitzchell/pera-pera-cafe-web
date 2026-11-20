@@ -29,7 +29,7 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} title={title} onClose={onCancel}>
       {children && <div className="text-muted-foreground">{children}</div>}
-      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-6">
         <Button variant="outline" onClick={onCancel} autoFocus>
           {cancelLabel}
         </Button>

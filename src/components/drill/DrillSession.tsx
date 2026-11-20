@@ -1,4 +1,4 @@
-import { ArrowDown, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { ApiError, drillApi } from '@/api';
@@ -11,11 +11,15 @@ import { Furigana } from '@/components/Furigana';
 import { Button } from '@/components/ui/button';
 import { FORM_LABELS, MODE_LABELS } from '@/lib/labels';
 import { advance, initialPile } from '@/lib/pile';
+import { cn } from '@/lib/utils';
 
 type Answered = AnswerResult & { answer: string };
 
 // After a wrong answer, a hasty Enter shouldn't skip past the correction.
 const MISTAKE_DELAY_MS = 600;
+
+// Beyond this many items, one segment each gets too thin to read.
+const MAX_SEGMENTS = 12;
 
 interface DrillSessionProps {
   round: Round;
@@ -52,6 +56,9 @@ export function DrillSession({
     round.mode === 'CONTRAST' && !isRetry && item.position % 2 === 1
       ? round.items[item.position - 1]
       : undefined;
+  // "te-form (て形)": the Japanese name is shown small so long form names stay on one line.
+  const [, formName = FORM_LABELS[item.form], formKanji] =
+    /^(.*) \((.*)\)$/.exec(FORM_LABELS[item.form]) ?? [];
   const conflict = error instanceof ApiError && error.status === 409;
   const isLast = pile.length === 1 && (conflict || Boolean(result?.isCorrect));
   const continueLabel = isLast ? (completing ? 'Finishing…' : 'See results') : 'Next';
@@ -123,8 +130,8 @@ export function DrillSession({
   });
 
   return (
-    <div className="grid gap-5">
-      <div className="flex items-center gap-3">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
+      <div className="flex items-center gap-3.5">
         {quit}
         <div
           role="progressbar"
@@ -133,24 +140,29 @@ export function DrillSession({
           aria-valuemax={total}
           aria-valuenow={cleared}
           aria-valuetext={`${cleared} of ${total} done`}
-          className="bg-muted h-2 flex-1 overflow-hidden rounded-full"
+          className="flex h-1 flex-1 gap-1"
         >
-          <div
-            className="bg-primary h-full rounded-full transition-[width] motion-reduce:transition-none"
-            style={{ width: `${(cleared / total) * 100}%` }}
-          />
+          {total > MAX_SEGMENTS ? (
+            <div className="bg-muted-foreground/30 h-full w-full">
+              <div
+                className="bg-primary h-full transition-[width] motion-reduce:transition-none"
+                style={{ width: `${(cleared / total) * 100}%` }}
+              />
+            </div>
+          ) : (
+            round.items.map((roundItem, index) => (
+              <i
+                key={roundItem.id}
+                className={cn('flex-1', index < cleared ? 'bg-primary' : 'bg-muted-foreground/30')}
+              />
+            ))
+          )}
         </div>
-        <span className="text-muted-foreground text-sm tabular-nums" aria-hidden>
-          {cleared}/{total}
-        </span>
       </div>
 
-      <section
-        aria-label="Question"
-        className="bg-card relative grid justify-items-center gap-1 rounded-2xl border px-4 py-6 text-center"
-      >
+      <section aria-label="Question" className="relative grid content-start gap-1.5">
         {isRetry && (
-          <p className="text-muted-foreground absolute top-3 left-3 flex items-center gap-1 text-xs font-medium">
+          <p className="text-muted-foreground absolute top-0 right-0 flex items-center gap-1 text-xs font-medium">
             <RotateCcw aria-hidden className="size-3.5" /> Try again
           </p>
         )}
@@ -158,23 +170,28 @@ export function DrillSession({
           {item.verb.dictionaryForm}
           {item.verb.reading !== item.verb.dictionaryForm && ` (${item.verb.reading})`}
         </span>
-        <p className="text-5xl leading-tight font-medium sm:text-6xl">
+        <p className="text-[44px] leading-[1.15] font-semibold">
           <Furigana
             word={item.verb.dictionaryForm}
             reading={item.verb.reading}
             show={showFurigana}
           />
         </p>
-        <p className="text-muted-foreground text-sm">{item.verb.meaning}</p>
-        <ArrowDown aria-hidden className="text-muted-foreground my-2 size-5" />
+        <p className="text-muted-foreground">{item.verb.meaning}</p>
         <h1
           id="prompt-form"
-          className="bg-primary/10 text-primary rounded-full px-4 py-1.5 text-lg font-semibold"
+          aria-label={FORM_LABELS[item.form]}
+          className="text-primary mt-1.5 text-[26px] font-semibold"
         >
-          {FORM_LABELS[item.form]}
+          → {formName}
+          {formKanji && (
+            <span lang="ja" className="text-muted-foreground ml-2.5 text-[15px] font-medium">
+              {formKanji}
+            </span>
+          )}
         </h1>
         {pairedItem && (
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="text-muted-foreground text-sm">
             Compare with {FORM_LABELS[pairedItem.form]}
           </p>
         )}
@@ -203,15 +220,24 @@ export function DrillSession({
       )}
 
       <div aria-live="polite" aria-atomic="true">
-        {result && <Feedback result={result} />}
+        {result && (
+          <Feedback
+            result={result}
+            // In an exam the right choice turns green, unless the verb changed and none matches.
+            showAnswer={!choices?.includes(result.expected.kana)}
+          />
+        )}
       </div>
 
       <ErrorMessage error={error} />
 
       {((isExam && result) || conflict) && (
-        <Button size="lg" onClick={next} disabled={completing} autoFocus>
-          {continueLabel}
-        </Button>
+        <div className="grid justify-center">
+          <Button size="lg" onClick={next} disabled={completing} autoFocus>
+            {continueLabel}
+            <span aria-hidden> →</span>
+          </Button>
+        </div>
       )}
     </div>
   );

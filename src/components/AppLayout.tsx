@@ -1,5 +1,5 @@
 import { ChartColumn, House, Settings, ShieldCheck, type LucideIcon } from 'lucide-react';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { useAuth, useSignedIn } from '@/auth/useAuth';
@@ -40,8 +40,10 @@ function TopNav() {
               end={to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'hover:bg-accent focus-visible:ring-ring/50 inline-flex h-11 items-center rounded-lg px-3 text-sm font-medium outline-none focus-visible:ring-[3px]',
-                  isActive ? 'text-foreground bg-accent' : 'text-muted-foreground',
+                  'focus-visible:ring-ring/50 inline-flex h-11 items-center border-b-[3px] px-3 text-sm font-medium outline-none focus-visible:ring-[3px]',
+                  isActive
+                    ? 'text-foreground border-primary'
+                    : 'text-muted-foreground hover:text-foreground border-transparent',
                 )
               }
             >
@@ -65,9 +67,9 @@ function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="bg-background/95 fixed inset-x-0 bottom-0 z-10 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+      className="bg-background fixed inset-x-0 bottom-0 z-10 border-t pb-[env(safe-area-inset-bottom)] sm:hidden"
     >
-      <div className="mx-auto flex max-w-md">
+      <div className="flex">
         {useNavTargets().map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -94,7 +96,7 @@ export function AppLayout() {
     <div className="flex min-h-dvh flex-col">
       <a
         href="#main"
-        className="focus:bg-card sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-20 focus:rounded-lg focus:p-3"
+        className="focus:bg-card sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-20 focus:p-3"
       >
         Skip to content
       </a>
@@ -111,8 +113,36 @@ export function AppLayout() {
 
 /** Full-screen layout without navigation, for drilling. */
 export function FocusLayout() {
+  const mainRef = useRef<HTMLElement>(null);
+
+  // iOS slides the page when the keyboard opens. Following the visible area keeps this screen where it was.
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const main = mainRef.current;
+    if (!viewport || !main) return;
+    const pin = () => {
+      // Pinch-zoom also changes the visible area; leave the layout alone then.
+      if (viewport.scale !== 1) return;
+      main.style.top = `${viewport.offsetTop}px`;
+      main.style.height = `${viewport.height}px`;
+    };
+    pin();
+    viewport.addEventListener('resize', pin);
+    viewport.addEventListener('scroll', pin);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      viewport.removeEventListener('resize', pin);
+      viewport.removeEventListener('scroll', pin);
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   return (
-    <main id="main" className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-4 pt-3 pb-6">
+    <main
+      ref={mainRef}
+      id="main"
+      className="fixed inset-x-0 top-0 mx-auto flex h-dvh w-full max-w-2xl flex-col overflow-y-auto px-4 pt-1.5 pb-6"
+    >
       <Suspense fallback={<Loading />}>
         <Outlet />
       </Suspense>

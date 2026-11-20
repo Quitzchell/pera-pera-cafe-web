@@ -41,7 +41,7 @@ test('accept invite, sign in, finish a round and see progress', async ({ page })
   await expect(page.getByText(/Correct$/)).toBeVisible();
   await page.getByRole('button', { name: 'See results' }).click();
 
-  await expect(page.getByRole('heading', { name: '1 / 2' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '1/2' })).toBeVisible();
   await expect(page.getByText('およんだ')).toBeVisible();
   await expect(page.getByText('ぐ → いだ (泳ぐ → 泳いだ)')).toBeVisible();
 

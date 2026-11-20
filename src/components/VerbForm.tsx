@@ -14,7 +14,7 @@ import {
 import { ErrorMessage } from '@/components/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
-import { Input, Select } from '@/components/ui/input';
+import { checkboxClass, Input, Select } from '@/components/ui/input';
 import { FORM_LABELS, VERB_CLASS_LABELS } from '@/lib/labels';
 
 interface VerbFormProps {
@@ -116,7 +116,7 @@ export function VerbForm({ verb, baseCandidates, onSaved, onCancel }: VerbFormPr
           type="checkbox"
           checked={isCompound}
           onChange={(event) => setIsCompound(event.target.checked)}
-          className="accent-primary size-5"
+          className={checkboxClass}
         />
         Compound verb (e.g. 勉強する, 持ってくる)
       </label>
@@ -162,7 +162,7 @@ export function VerbForm({ verb, baseCandidates, onSaved, onCancel }: VerbFormPr
                       : excludedForms.filter((excluded) => excluded !== form),
                   )
                 }
-                className="accent-primary size-5"
+                className={checkboxClass}
               />
               {FORM_LABELS[form]}
             </label>
@@ -175,13 +175,13 @@ export function VerbForm({ verb, baseCandidates, onSaved, onCancel }: VerbFormPr
           type="checkbox"
           checked={isActive}
           onChange={(event) => setIsActive(event.target.checked)}
-          className="accent-primary size-5"
+          className={checkboxClass}
         />
         Active (used in rounds)
       </label>
 
       <ErrorMessage error={error} />
-      <div className="flex gap-2">
+      <div className="flex items-end gap-6">
         <Button type="submit" disabled={pending}>
           {pending ? 'Saving…' : 'Save verb'}
         </Button>
