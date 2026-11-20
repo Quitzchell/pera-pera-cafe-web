@@ -7,7 +7,7 @@ export function StreakSkips({ left }: { left: number }) {
 
   return (
     <span
-      className="bg-muted inline-flex items-center gap-1 rounded-full px-2 py-1"
+      className="inline-flex items-center gap-[3px]"
       role="img"
       aria-label={label}
       title={label}
@@ -15,10 +15,7 @@ export function StreakSkips({ left }: { left: number }) {
       {Array.from({ length: MAX_SKIPS }, (_, index) => (
         <span
           key={index}
-          className={cn(
-            'size-1.5 rounded-full',
-            index < left ? 'bg-primary' : 'bg-muted-foreground/50',
-          )}
+          className={cn('size-2', index < left ? 'bg-primary' : 'bg-muted-foreground/30')}
         />
       ))}
     </span>

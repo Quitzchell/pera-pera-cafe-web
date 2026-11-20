@@ -81,7 +81,7 @@ function ActiveRound({ round }: { round: Round }) {
         romajiInput={settings.romajiInput}
         completing={pending}
         quit={
-          <Button variant="ghost" size="icon" className="-ml-2 shrink-0" asChild>
+          <Button variant="ghost" size="icon" className="-ml-2.5 shrink-0 no-underline" asChild>
             <Link to="/" aria-label="Quit round">
               <X aria-hidden />
             </Link>

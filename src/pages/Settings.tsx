@@ -11,14 +11,9 @@ import {
 import { useAuth, useSignedIn } from '@/auth/useAuth';
 import { ErrorMessage } from '@/components/ErrorState';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Field } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { checkboxClass } from '@/components/ui/input';
 import { FORM_EXAMPLES, FORM_LABELS, FORMS_BY_LEVEL } from '@/lib/labels';
 import { cn } from '@/lib/utils';
-
-const MIN_ROUND = 1;
-const MAX_ROUND = 50;
 
 const sortForms = (forms: ConjugationForm[]) =>
   CONJUGATION_FORMS.filter((form) => forms.includes(form));
@@ -33,12 +28,12 @@ function Checkbox({
   children: ReactNode;
 }) {
   return (
-    <label className="hover:bg-accent flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2">
+    <label className="flex min-h-11 cursor-pointer items-center gap-3 py-1.5">
       <input
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="accent-primary size-5"
+        className={checkboxClass}
       />
       <span className="flex-1">{children}</span>
     </label>
@@ -51,8 +46,6 @@ export function Settings() {
   const { user, settings, updateSettings } = useSignedIn();
   const { signOut } = useAuth();
   const [draft, setDraft] = useState<SettingsData>(settings);
-  const [roundSize, setRoundSize] = useState(String(settings.roundSize));
-  const [roundSizeError, setRoundSizeError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [error, setError] = useState<unknown>(null);
   const [formLevel, setFormLevel] = useState<JlptLevel>('N5');
@@ -86,16 +79,6 @@ export function Settings() {
         setSaveState('idle');
       }
     });
-  }
-
-  function saveRoundSize() {
-    const size = Number(roundSize);
-    if (!Number.isInteger(size) || size < MIN_ROUND || size > MAX_ROUND) {
-      setRoundSizeError(`Choose a number between ${MIN_ROUND} and ${MAX_ROUND}.`);
-      return;
-    }
-    setRoundSizeError(null);
-    if (size !== draft.roundSize) save({ roundSize: size });
   }
 
   function setForms(enabledForms: ConjugationForm[]) {
@@ -134,30 +117,13 @@ export function Settings() {
   }
 
   return (
-    <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Settings</h1>
+    <div className="grid gap-5">
+      <h1 className="text-[26px] font-semibold">Settings</h1>
 
-      <Card aria-labelledby="practice-heading" className="grid gap-4">
-        <h2 id="practice-heading" className="text-lg font-semibold">
+      <section aria-labelledby="practice-heading" className="grid gap-1 pt-7">
+        <h2 id="practice-heading" className="section-label">
           Practice
         </h2>
-        <Field
-          label="Questions per round"
-          hint={roundSizeError ?? `Between ${MIN_ROUND} and ${MAX_ROUND}.`}
-        >
-          <Input
-            type="number"
-            inputMode="numeric"
-            min={MIN_ROUND}
-            max={MAX_ROUND}
-            value={roundSize}
-            aria-invalid={roundSizeError ? true : undefined}
-            onChange={(event) => setRoundSize(event.target.value)}
-            onBlur={saveRoundSize}
-            onKeyDown={(event) => event.key === 'Enter' && saveRoundSize()}
-            className="max-w-32"
-          />
-        </Field>
         <Checkbox checked={draft.romajiInput} onChange={(romajiInput) => save({ romajiInput })}>
           Romaji input
           <span className="text-muted-foreground block text-sm">
@@ -168,20 +134,20 @@ export function Settings() {
           Furigana
           <span className="text-muted-foreground block text-sm">Show the reading above kanji.</span>
         </Checkbox>
-      </Card>
+      </section>
 
-      <Card aria-labelledby="forms-heading">
-        <h2 id="forms-heading" className="text-lg font-semibold">
+      <section aria-labelledby="forms-heading" className="grid gap-2.5 pt-7">
+        <h2 id="forms-heading" className="section-label">
           Level
         </h2>
-        <p className="text-muted-foreground mb-4 text-sm">
+        <p className="text-muted-foreground text-sm">
           Choose the verbs and forms you practise per JLPT level. Forms are grouped by the level
           where they are usually taught.
         </p>
         <div
           role="tablist"
           aria-label="JLPT level"
-          className="bg-muted mb-4 grid grid-cols-3 gap-1 rounded-lg p-1"
+          className="flex gap-6 border-b"
           onKeyDown={handleTabKey}
         >
           {JLPT_LEVELS.map((level) => {
@@ -200,10 +166,10 @@ export function Settings() {
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setFormLevel(level)}
                 className={cn(
-                  'focus-visible:ring-ring/50 min-h-11 rounded-md px-2 text-sm font-medium outline-none focus-visible:ring-[3px]',
+                  'focus-visible:ring-ring/50 -mb-px min-h-11 border-b-[3px] font-medium outline-none focus-visible:ring-[3px]',
                   selected
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'text-foreground border-primary'
+                    : 'text-muted-foreground hover:text-foreground border-transparent',
                 )}
               >
                 {level}
@@ -215,7 +181,7 @@ export function Settings() {
           role="tabpanel"
           id="forms-panel"
           aria-labelledby={`forms-tab-${formLevel}`}
-          className="grid gap-2"
+          className="grid"
         >
           <Checkbox
             checked={draft.jlptLevels.includes(formLevel)}
@@ -232,12 +198,12 @@ export function Settings() {
               Practise verbs from the {formLevel} list.
             </span>
           </Checkbox>
-          <div className="mt-2 flex items-center justify-between gap-2 border-t pt-3">
+          <div className="flex items-center justify-between gap-2 pt-1">
             <span className="text-sm font-medium">{formLevel} forms</span>
-            <div className="flex gap-2">
+            <div className="flex gap-4">
               <Button
                 type="button"
-                variant="outline"
+                variant="link"
                 size="sm"
                 aria-label={`Enable all ${formLevel} forms`}
                 onClick={() => setForms([...otherForms, ...levelForms])}
@@ -246,7 +212,7 @@ export function Settings() {
               </Button>
               <Button
                 type="button"
-                variant="outline"
+                variant="link"
                 size="sm"
                 aria-label={`Disable all ${formLevel} forms`}
                 onClick={() => setForms(otherForms)}
@@ -255,48 +221,44 @@ export function Settings() {
               </Button>
             </div>
           </div>
-          <div className="grid sm:grid-cols-2">
+          <div className="grid sm:grid-cols-2 sm:gap-x-6">
             {levelForms.map((form) => (
-              <Checkbox
-                key={form}
-                checked={draft.enabledForms.includes(form)}
-                onChange={(on) =>
-                  setForms(
-                    on
-                      ? [...draft.enabledForms, form]
-                      : draft.enabledForms.filter((enabled) => enabled !== form),
-                  )
-                }
-              >
-                {FORM_LABELS[form]}
-                <span lang="ja" className="text-muted-foreground ml-2 text-sm">
-                  {FORM_EXAMPLES[form]}
-                </span>
-              </Checkbox>
+              <div key={form} className="border-b">
+                <Checkbox
+                  checked={draft.enabledForms.includes(form)}
+                  onChange={(on) =>
+                    setForms(
+                      on
+                        ? [...draft.enabledForms, form]
+                        : draft.enabledForms.filter((enabled) => enabled !== form),
+                    )
+                  }
+                >
+                  {FORM_LABELS[form]}
+                  <span lang="ja" className="text-muted-foreground ml-2 text-sm">
+                    {FORM_EXAMPLES[form]}
+                  </span>
+                </Checkbox>
+              </div>
             ))}
           </div>
         </div>
-      </Card>
+      </section>
 
-      <Card aria-labelledby="account-heading" className="grid gap-3">
-        <h2 id="account-heading" className="text-lg font-semibold">
+      <section aria-labelledby="account-heading" className="grid justify-items-start gap-2 pt-7">
+        <h2 id="account-heading" className="section-label">
           Account
         </h2>
-        <p className="text-muted-foreground text-sm">Signed in as {user.username}</p>
-        <Button
-          type="button"
-          variant="outline"
-          className="justify-self-start"
-          onClick={() => void signOut()}
-        >
+        <p>Signed in as {user.username}</p>
+        <Button type="button" onClick={() => void signOut()}>
           Sign out
         </Button>
-      </Card>
+      </section>
 
       <div
         role="status"
         className={cn(
-          'bg-foreground text-background pointer-events-none fixed bottom-20 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm shadow-lg transition-opacity sm:bottom-6',
+          'bg-foreground text-background pointer-events-none fixed bottom-20 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 px-3 py-1.5 text-sm transition-opacity sm:bottom-6',
           saveState === 'idle' ? 'opacity-0' : 'opacity-100',
         )}
       >
@@ -308,7 +270,7 @@ export function Settings() {
         )}
       </div>
       {error !== null && (
-        <div className="bg-background fixed inset-x-4 bottom-20 z-20 rounded-lg sm:static">
+        <div className="bg-background fixed inset-x-4 bottom-20 z-20 sm:static">
           <ErrorMessage error={error} />
         </div>
       )}

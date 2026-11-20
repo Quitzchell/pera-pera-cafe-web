@@ -220,6 +220,21 @@ describe('DrillSession', () => {
     expect(screen.getByText('泳ぐ')).toBeInTheDocument();
   });
 
+  it('shows the exam answer when no choice matches it any more', async () => {
+    const user = userEvent.setup();
+    answer.mockResolvedValue({
+      ...correctTe,
+      isCorrect: false,
+      expected: { kanji: '泳げて', kana: 'およげて' },
+    });
+    renderSession(examRound);
+
+    await user.keyboard('1');
+
+    expect(await screen.findByText('Answer')).toBeInTheDocument();
+    expect(screen.getByText('泳げて')).toBeInTheDocument();
+  });
+
   it('picks exam choices with the 1–4 keys', async () => {
     const user = userEvent.setup();
     renderSession(examRound);

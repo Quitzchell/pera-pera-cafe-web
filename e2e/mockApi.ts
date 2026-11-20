@@ -9,7 +9,6 @@ interface Account extends User {
 const settings: Settings = {
   enabledForms: ['TE', 'PAST'],
   jlptLevels: ['N5', 'N4'],
-  roundSize: 5,
   romajiInput: false,
   showFurigana: true,
   timeZone: 'UTC',

@@ -5,7 +5,6 @@ import type { Verb, VerbSaveResult } from '@/api/types';
 import { ErrorState } from '@/components/ErrorState';
 import { Loading } from '@/components/Loading';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { VerbForm } from '@/components/VerbForm';
 import { useApiQuery } from '@/hooks/useApiQuery';
@@ -34,9 +33,9 @@ export function Verbs() {
   );
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Verbs</h1>
+        <h1 className="text-[26px] font-semibold">Verbs</h1>
         <Button
           onClick={() => {
             setSaved(null);
@@ -55,7 +54,7 @@ export function Verbs() {
           {saved.warnings.length > 0 && (
             <div
               role="alert"
-              className="border-warning-foreground/30 bg-warning text-warning-foreground rounded-xl border p-4"
+              className="border-warning-foreground/30 bg-warning text-warning-foreground border p-4"
             >
               <p className="font-semibold">Check this verb</p>
               <ul className="mt-1 list-disc pl-5">
@@ -69,7 +68,7 @@ export function Verbs() {
       )}
 
       {editing && (
-        <Card>
+        <section className="pt-7">
           <VerbForm
             key={editing.verb?.id ?? 'new'}
             verb={editing.verb}
@@ -77,7 +76,7 @@ export function Verbs() {
             onSaved={handleSaved}
             onCancel={() => setEditing(null)}
           />
-        </Card>
+        </section>
       )}
 
       <Input
@@ -94,12 +93,9 @@ export function Verbs() {
         (verbs.data.length === 0 ? (
           <p className="text-muted-foreground">No verbs found.</p>
         ) : (
-          <ul className="grid gap-2">
+          <ul className="grid">
             {verbs.data.map((verb) => (
-              <li
-                key={verb.id}
-                className="bg-card flex items-center justify-between gap-3 rounded-xl border p-3"
-              >
+              <li key={verb.id} className="flex items-center justify-between gap-3 border-b py-3">
                 <div className="min-w-0">
                   <p>
                     <span lang="ja" className="text-lg">
@@ -109,7 +105,7 @@ export function Verbs() {
                       {verb.reading}
                     </span>
                     {!verb.isActive && (
-                      <span className="bg-muted text-muted-foreground ml-2 rounded-full px-2 text-sm">
+                      <span className="text-muted-foreground ml-2 border px-1.5 text-xs">
                         Inactive
                       </span>
                     )}
@@ -120,7 +116,7 @@ export function Verbs() {
                   </p>
                 </div>
                 <Button
-                  variant="outline"
+                  variant="link"
                   size="sm"
                   onClick={() => {
                     setSaved(null);

@@ -7,10 +7,7 @@ import { errorMessages } from '@/lib/errors';
 export function ErrorMessage({ error }: { error: unknown }) {
   if (!error) return null;
   return (
-    <div
-      role="alert"
-      className="border-destructive/40 text-destructive rounded-lg border p-3 text-sm"
-    >
+    <div role="alert" className="border-destructive text-destructive border-l-2 py-1 pl-3 text-sm">
       {errorMessages(error).map((message) => (
         <p key={message}>{message}</p>
       ))}

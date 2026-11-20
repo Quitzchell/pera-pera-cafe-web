@@ -12,7 +12,6 @@ export const learner: User = {
 export const settings: Settings = {
   enabledForms: ['TE', 'PAST'],
   jlptLevels: ['N5', 'N4'],
-  roundSize: 20,
   romajiInput: false,
   showFurigana: true,
   timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,

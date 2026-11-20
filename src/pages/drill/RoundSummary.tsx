@@ -5,10 +5,15 @@ import type { RoundSummary as Summary } from '@/api/types';
 import { ErrorMessage, ErrorState } from '@/components/ErrorState';
 import { Loading } from '@/components/Loading';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { useApiQuery } from '@/hooks/useApiQuery';
 import { useStartRound } from '@/hooks/useStartRound';
 import { FORM_LABELS, MODE_LABELS } from '@/lib/labels';
+
+// Focus for keyboard users, without jumping past the score to the bottom of a long summary.
+const focusWithoutScroll = (button: HTMLButtonElement | null) =>
+  button?.focus({ preventScroll: true });
+
+const LABEL = 'text-muted-foreground inline-block w-[72px] text-[13px]';
 
 export function RoundSummary() {
   const { roundId = '' } = useParams();
@@ -29,11 +34,11 @@ export function RoundSummary() {
   const unanswered = summary.total - summary.answered;
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <div className="grid gap-1 text-center">
-        <p className="text-muted-foreground text-sm">{MODE_LABELS[summary.mode]} round</p>
-        <h1 className="text-4xl font-semibold tabular-nums">
-          {summary.correct} / {summary.total}
+        <p className="text-muted-foreground">{MODE_LABELS[summary.mode]} round</p>
+        <h1 className="text-[56px] leading-none font-semibold tabular-nums">
+          {summary.correct}/{summary.total}
         </h1>
         <p className="text-muted-foreground">
           {summary.mistakes.length === 0 && unanswered === 0
@@ -44,11 +49,13 @@ export function RoundSummary() {
       </div>
 
       {summary.mistakes.length > 0 && (
-        <Card>
-          <h2 className="mb-3 text-lg font-semibold">Mistakes</h2>
-          <ul className="grid gap-4">
+        <section aria-labelledby="mistakes-heading" className="grid gap-2.5 pt-7">
+          <h2 id="mistakes-heading" className="section-label">
+            Mistakes
+          </h2>
+          <ul className="grid">
             {summary.mistakes.map((mistake) => (
-              <li key={mistake.itemId} className="grid gap-1 border-b pb-4 last:border-0 last:pb-0">
+              <li key={mistake.itemId} className="grid gap-1 border-b py-3 first:pt-0">
                 <p>
                   <span lang="ja" className="text-lg">
                     {mistake.verb.dictionaryForm}
@@ -58,13 +65,7 @@ export function RoundSummary() {
                   </span>
                 </p>
                 <p>
-                  <span className="text-muted-foreground text-sm">You: </span>
-                  <span lang="ja" className="text-destructive line-through">
-                    {mistake.answer}
-                  </span>
-                </p>
-                <p>
-                  <span className="text-muted-foreground text-sm">Correct: </span>
+                  <span className={LABEL}>Correct</span>
                   <span lang="ja" className="text-success">
                     {mistake.expected.kanji}
                   </span>
@@ -74,26 +75,36 @@ export function RoundSummary() {
                     </span>
                   )}
                 </p>
-                <p lang="ja" className="text-muted-foreground text-sm">
+                <p>
+                  <span className={LABEL}>You wrote</span>
+                  <span lang="ja" className="text-destructive line-through">
+                    {mistake.answer}
+                  </span>
+                </p>
+                <p lang="ja">
+                  <span lang="en" className={LABEL}>
+                    Rule
+                  </span>
                   {mistake.ruleHint}
                 </p>
               </li>
             ))}
           </ul>
-        </Card>
+        </section>
       )}
 
       <ErrorMessage error={startRound.error} />
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid justify-items-center gap-1 pt-7">
         <Button
           size="lg"
+          className="text-[19px]"
           onClick={() => void startRound.start(summary.mode)}
           disabled={startRound.pending !== null}
-          autoFocus
+          ref={focusWithoutScroll}
         >
-          {startRound.pending ? 'Starting…' : 'Another round'}
+          {startRound.pending ? 'Starting…' : <>Another round</>}
         </Button>
-        <Button size="lg" variant="outline" asChild>
+        <Button variant="outline" className="text-muted-foreground" asChild>
           <Link to="/">Home</Link>
         </Button>
       </div>

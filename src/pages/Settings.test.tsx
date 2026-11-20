@@ -36,17 +36,6 @@ describe('Settings', () => {
     await user.click(screen.getByRole('checkbox', { name: /romaji input/i }));
     expect(updateSettings).toHaveBeenLastCalledWith({ romajiInput: true });
     expect(await screen.findByRole('status')).toHaveTextContent('Saved');
-
-    const roundSize = screen.getByLabelText('Questions per round');
-    await user.clear(roundSize);
-    await user.type(roundSize, '60');
-    await user.tab();
-    expect(roundSize).toHaveAccessibleDescription(/between 1 and 50/i);
-    expect(updateSettings).toHaveBeenCalledTimes(1);
-
-    await user.clear(roundSize);
-    await user.type(roundSize, '10{Enter}');
-    expect(updateSettings).toHaveBeenLastCalledWith({ roundSize: 10 });
   });
 
   it('switches the verbs of a level on and off from its tab', async () => {
